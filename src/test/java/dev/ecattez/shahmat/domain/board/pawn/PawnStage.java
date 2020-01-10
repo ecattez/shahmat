@@ -2,6 +2,7 @@ package dev.ecattez.shahmat.domain.board.pawn;
 
 import com.tngtech.jgiven.Stage;
 import com.tngtech.jgiven.annotation.BeforeStage;
+import dev.ecattez.shahmat.board.ImpossibleToMove;
 import dev.ecattez.shahmat.board.ChessGame;
 import dev.ecattez.shahmat.board.Direction;
 import dev.ecattez.shahmat.board.OutsideSquare;
@@ -10,6 +11,7 @@ import dev.ecattez.shahmat.board.PieceBox;
 import dev.ecattez.shahmat.board.PieceColor;
 import dev.ecattez.shahmat.board.PieceFactory;
 import dev.ecattez.shahmat.board.PieceType;
+import dev.ecattez.shahmat.board.RulesViolation;
 import dev.ecattez.shahmat.board.Square;
 import dev.ecattez.shahmat.board.TradeRefused;
 import dev.ecattez.shahmat.command.MovePiece;
@@ -37,7 +39,7 @@ public class PawnStage extends Stage<PawnStage> {
     private Square to;
     private List<BoardEvent> returnedEvents;
     private List<BoardEvent> history;
-    private Exception error;
+    private RulesViolation violation;
 
     @BeforeStage
     public void init() {
@@ -95,14 +97,18 @@ public class PawnStage extends Stage<PawnStage> {
 
     public PawnStage the_pawn_is_moved_forward() {
         this.to = from.neighbour(Direction.FORWARD, pawn.orientation()).orElseThrow(OutsideSquare::new);
-        this.returnedEvents = ChessGame.move(
-            Collections.unmodifiableList(history),
-            new MovePiece(
-                pawn,
-                from,
-                to
-            )
-        );
+        try {
+            this.returnedEvents = ChessGame.move(
+                Collections.unmodifiableList(history),
+                new MovePiece(
+                    pawn,
+                    from,
+                    to
+                )
+            );
+        } catch (RulesViolation e) {
+            violation = e;
+        }
         return self();
     }
 
@@ -111,14 +117,18 @@ public class PawnStage extends Stage<PawnStage> {
             .neighbour(Direction.FORWARD, pawn.orientation())
             .flatMap(forwardSquare -> forwardSquare.neighbour(Direction.FORWARD, pawn.orientation()))
             .orElseThrow(OutsideSquare::new);
-        this.returnedEvents = ChessGame.move(
-            Collections.unmodifiableList(history),
-            new MovePiece(
-                pawn,
-                from,
-                to
-            )
-        );
+        try {
+            this.returnedEvents = ChessGame.move(
+                Collections.unmodifiableList(history),
+                new MovePiece(
+                    pawn,
+                    from,
+                    to
+                )
+            );
+        } catch (RulesViolation e) {
+            violation = e;
+        }
         return self();
     }
 
@@ -154,8 +164,8 @@ public class PawnStage extends Stage<PawnStage> {
                     PieceType.KING
                 )
             );
-        } catch (TradeRefused e) {
-            error = e;
+        } catch (RulesViolation e) {
+            violation = e;
         }
         return self();
     }
@@ -173,10 +183,10 @@ public class PawnStage extends Stage<PawnStage> {
         return self();
     }
 
-    public PawnStage the_pawn_stays_in_$(String to) {
+    public PawnStage the_pawn_stays_in_$(String location) {
         Assertions
-            .assertThat(returnedEvents)
-            .isEmpty();
+            .assertThat(violation)
+            .isInstanceOf(ImpossibleToMove.class);
         return self();
     }
 
@@ -205,7 +215,7 @@ public class PawnStage extends Stage<PawnStage> {
 
     public PawnStage the_trade_is_refused() {
         Assertions
-            .assertThat(error)
+            .assertThat(violation)
             .isInstanceOf(TradeRefused.class);
         return self();
     }

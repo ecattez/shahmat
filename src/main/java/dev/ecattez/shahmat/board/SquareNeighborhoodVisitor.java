@@ -5,6 +5,9 @@ import java.util.Optional;
 public class SquareNeighborhoodVisitor implements OrientationVisitor<Optional<Square>> {
 
     // todo: maybe try to extract direction ?
+    private final WhiteDirectionVisitor whiteDirectionVisitor = new WhiteDirectionVisitor();
+    private final BlackDirectionVisitor blackDirectionVisitor = new BlackDirectionVisitor();
+
     private Direction direction;
     private Square.File file;
     private Square.Rank rank;
@@ -19,13 +22,13 @@ public class SquareNeighborhoodVisitor implements OrientationVisitor<Optional<Sq
     }
 
     @Override
-    public Optional<Square> visitBlackView() {
-        return direction.accept(new BlackDirectionVisitor());
+    public Optional<Square> visitUpward() {
+        return direction.accept(whiteDirectionVisitor);
     }
 
     @Override
-    public Optional<Square> visitWhiteView() {
-        return direction.accept(new WhiteDirectionVisitor());
+    public Optional<Square> visitDownward() {
+        return direction.accept(blackDirectionVisitor);
     }
 
     private final class BlackDirectionVisitor implements DirectionVisitor<Optional<Square>> {

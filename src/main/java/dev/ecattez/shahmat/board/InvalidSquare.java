@@ -6,8 +6,4 @@ public class InvalidSquare extends InvalidPosition {
         super(square + " is not a valid square");
     }
 
-    public InvalidSquare(String square, Throwable cause) {
-        super(square + " is not a valid square", cause);
-    }
-
 }

@@ -22,7 +22,10 @@ public class ChessGame {
 
     private static final PieceColorVisitor<Integer> TRADING_RANKS = new PawnTradingRankVisitor();
 
-    public static List<BoardEvent> move(List<BoardEvent> history, MovePiece command) throws InvalidMove {
+    public static List<BoardEvent> move(
+        List<BoardEvent> history,
+        MovePiece command
+    ) throws RulesViolation {
         Square from = command.from;
         Square to = command.to;
 
@@ -30,70 +33,72 @@ public class ChessGame {
             throw new InvalidMove("Current position and destination are the same square");
         }
 
-        List<BoardEvent> events = new LinkedList<>();
         Board board = replay(history);
-        Piece piece = command.piece;
+        if (board.isVacant(from)) {
+            throw new NoPieceOnSquare(from);
+        }
 
-        board.getPiece(from)
-            .filter(pieceOnBoard ->
-                pieceOnBoard.equals(piece)
-                    && canBeMoved(pieceOnBoard, from, to, board)
+        Piece pieceToMove = board
+            .getPiece(from)
+            .filter(command.piece::equals)
+            .orElseThrow(() -> new WrongPieceSelected(from));
+
+        if (!canBeMoved(pieceToMove, from, to, board)) {
+            // todo: can be improved in the future with a cause
+            throw new ImpossibleToMove(pieceToMove, from, to);
+        }
+
+        List<BoardEvent> events = new LinkedList<>();
+        events.add(
+            new PieceMoved(
+                pieceToMove,
+                from,
+                to
             )
-            .ifPresent(pieceToMove -> {
-                events.add(
-                    new PieceMoved(
-                        pieceToMove,
-                        from,
-                        to
-                    )
-                );
+        );
 
-                board.getPiece(to)
-                    .map(capturedPiece ->
-                        new PieceCaptured(
-                            capturedPiece,
-                            pieceToMove
-                        )
-                    ).ifPresent(events::add);
+        board.getPiece(to)
+            .map(capturedPiece ->
+                new PieceCaptured(
+                    capturedPiece,
+                    pieceToMove
+                )
+            ).ifPresent(events::add);
 
-                if (canBeTraded(pieceToMove, to)) {
-                    events.add(
-                        new TradeProposed(to)
-                    );
-                }
-            });
-        ;
+        if (canBeTraded(pieceToMove, to)) {
+            events.add(
+                new TradeProposed(to)
+            );
+        }
 
         return events;
     }
 
-    public static List<BoardEvent> trade(List<BoardEvent> history, TradePawn command) throws TradeRefused {
+    public static List<BoardEvent> trade(
+        List<BoardEvent> history,
+        TradePawn command
+    ) throws RulesViolation {
         PieceType typeOfTrade = command.typeOfTrade;
+
+        if (isTryingToTradeForAKing(typeOfTrade)) {
+            throw new TradeRefused(TradeRefused.Reason.TRADE_FOR_A_KING);
+        }
+
         Square location = command.location;
-
-        // Should never be null
-        if (typeOfTrade == null) {
-            return Collections.emptyList();
-        }
-
-        if (PieceType.KING.equals(typeOfTrade)) {
-            throw new TradeRefused(location);
-        }
-
-        return replay(history)
+        Piece pieceToBeTraded = replay(history)
             .getPiece(location)
-            .filter(pieceOnBoard ->
-                canBeTraded(pieceOnBoard, location)
+            .orElseThrow(() -> new NoPieceOnSquare(location));
+
+        if (!canBeTraded(pieceToBeTraded, location)) {
+            throw new TradeRefused(TradeRefused.Reason.PIECE_IS_NOT_TRADABLE);
+        }
+
+        return Collections.singletonList(
+            new PawnTraded(
+                location,
+                PIECE_FACTORY.createPiece(typeOfTrade, pieceToBeTraded.color)
             )
-            .map(pawnToTrade ->
-                new PawnTraded(
-                    location,
-                    PIECE_FACTORY.createPiece(typeOfTrade, pawnToTrade.color)
-                )
-            )
-            .map(Collections::<BoardEvent>singletonList)
-            .orElse(Collections.emptyList())
-        ;
+        );
     }
 
     private static Board replay(List<BoardEvent> history) {
@@ -118,6 +123,10 @@ public class ChessGame {
     private static boolean canBeMoved(Piece pieceOnBoard, Square from, Square to, Board board) {
         return pieceOnBoard.type.accept(MOVING_STRATEGIES)
             .canMove(pieceOnBoard, from, to, board);
+    }
+
+    private static boolean isTryingToTradeForAKing(PieceType typeOfTrade) {
+        return PieceType.KING.equals(typeOfTrade);
     }
 
     private static boolean canBeTraded(Piece pieceOnBoard, Square location) {

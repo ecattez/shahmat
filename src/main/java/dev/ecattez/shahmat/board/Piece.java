@@ -4,12 +4,16 @@ import java.util.Objects;
 
 public abstract class Piece implements Typed, Colored, Oriented {
 
+    private static final PieceColorVisitor<Orientation> COLOR_ORIENTED = new PieceColorOrientationVisitor();
+
     public final PieceType type;
     public final PieceColor color;
+    public final Orientation orientation;
 
     public Piece(PieceType type, PieceColor color) {
         this.type = type;
         this.color = color;
+        this.orientation = color.accept(COLOR_ORIENTED);
     }
 
     @Override
@@ -24,17 +28,7 @@ public abstract class Piece implements Typed, Colored, Oriented {
 
     @Override
     public Orientation orientation() {
-        return color.accept(new PieceColorVisitor<Orientation>() {
-            @Override
-            public Orientation visitBlack() {
-                return Orientation.BLACK_VIEW;
-            }
-
-            @Override
-            public Orientation visitWhite() {
-                return Orientation.WHITE_VIEW;
-            }
-        });
+        return orientation;
     }
 
     public boolean isAlly(Piece piece) {
@@ -42,7 +36,7 @@ public abstract class Piece implements Typed, Colored, Oriented {
     }
 
     public boolean isOpponent(Piece piece) {
-        return !isAlly(piece);
+        return piece != null && piece.isOfColor(this.color.opposite());
     }
 
     @Override

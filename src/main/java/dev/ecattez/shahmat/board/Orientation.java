@@ -2,16 +2,16 @@ package dev.ecattez.shahmat.board;
 
 public enum Orientation {
 
-    BLACK_VIEW {
+    DOWNWARD {
         @Override
         public <T> T accept(OrientationVisitor<T> visitor) {
-            return visitor.visitBlackView();
+            return visitor.visitDownward();
         }
     },
-    WHITE_VIEW {
+    UPWARD {
         @Override
         public <T> T accept(OrientationVisitor<T> visitor) {
-            return visitor.visitWhiteView();
+            return visitor.visitUpward();
         }
     };
 

@@ -1,9 +1,9 @@
 package dev.ecattez.shahmat.board;
 
-public class InvalidMove extends RuntimeException {
+public class InvalidMove extends RulesViolation {
 
-    public InvalidMove(String message) {
-        super(message);
+    public InvalidMove(String reason) {
+        super(reason);
     }
 
 }

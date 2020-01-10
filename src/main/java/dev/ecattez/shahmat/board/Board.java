@@ -23,12 +23,12 @@ public class Board {
         this.boardState = new HashMap<>();
     }
 
-    public Optional<Piece> getPiece(Square position) {
-        return Optional.ofNullable(boardState.get(position));
+    public Optional<Piece> getPiece(Square location) {
+        return Optional.ofNullable(boardState.get(location));
     }
 
-    public boolean isVacant(Square position) {
-        return boardState.get(position) == null;
+    public boolean isVacant(Square location) {
+        return boardState.get(location) == null;
     }
 
     public boolean isOpponentOf(Square neighbour, Piece piece) {
