@@ -62,7 +62,7 @@ public class PromotionSpec {
         stage
             .given().a_pawn_in_the_other_side_of_the_chess_board()
             .when().the_pawn_is_promoted_for(promotionType)
-            .then().a_$_replace_the_pawn(promotionType);
+            .then().a_$_replaces_the_pawn(promotionType);
     }
 
 }

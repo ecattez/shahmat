@@ -126,7 +126,7 @@ public class PromotionStage extends Stage<PromotionStage> {
         return self();
     }
 
-    public PromotionStage a_$_replace_the_pawn(String type) {
+    public PromotionStage a_$_replaces_the_pawn(String type) {
         Assertions
             .assertThat(returnedEvents)
             .contains(
