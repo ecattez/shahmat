@@ -3,13 +3,13 @@ package dev.ecattez.shahmat.command;
 import dev.ecattez.shahmat.board.PieceType;
 import dev.ecattez.shahmat.board.Square;
 
-public class TradePawn {
+public class PromotePawn {
 
     public final Square location;
-    public final PieceType typeOfTrade;
+    public final PieceType typeOfPromotion;
 
-    public TradePawn(Square location, PieceType typeOfTrade) {
+    public PromotePawn(Square location, PieceType typeOfPromotion) {
         this.location = location;
-        this.typeOfTrade = typeOfTrade;
+        this.typeOfPromotion = typeOfPromotion;
     }
 }

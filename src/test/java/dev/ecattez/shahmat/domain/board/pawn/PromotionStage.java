@@ -2,18 +2,18 @@ package dev.ecattez.shahmat.domain.board.pawn;
 
 import com.tngtech.jgiven.Stage;
 import com.tngtech.jgiven.annotation.BeforeStage;
-import dev.ecattez.shahmat.board.ImpossibleToMove;
 import dev.ecattez.shahmat.board.ChessGame;
 import dev.ecattez.shahmat.board.Direction;
+import dev.ecattez.shahmat.board.ImpossibleToMove;
 import dev.ecattez.shahmat.board.OutsideSquare;
 import dev.ecattez.shahmat.board.Piece;
 import dev.ecattez.shahmat.board.PieceBox;
 import dev.ecattez.shahmat.board.PieceColor;
 import dev.ecattez.shahmat.board.PieceFactory;
 import dev.ecattez.shahmat.board.PieceType;
+import dev.ecattez.shahmat.board.PromotionRefused;
 import dev.ecattez.shahmat.board.RulesViolation;
 import dev.ecattez.shahmat.board.Square;
-import dev.ecattez.shahmat.board.PromotionRefused;
 import dev.ecattez.shahmat.command.MovePiece;
 import dev.ecattez.shahmat.command.PromotePawn;
 import dev.ecattez.shahmat.event.BoardEvent;
@@ -30,11 +30,10 @@ import java.util.List;
 
 import static org.mockito.Mockito.mock;
 
-public class PawnStage extends Stage<PawnStage> {
+public class PromotionStage extends Stage<PromotionStage> {
 
     private PieceFactory pieceFactory;
     private Piece pawn;
-    private Piece opponentPiece;
     private Square from;
     private Square to;
     private List<BoardEvent> returnedEvents;
@@ -47,7 +46,7 @@ public class PawnStage extends Stage<PawnStage> {
         this.history = new LinkedList<>();
     }
 
-    public PawnStage a_$_pawn_in_$(String color, String from) {
+    public PromotionStage a_$_pawn_in_$(String color, String from) {
         this.from = new Square(from);
         this.pawn = pieceFactory.createPiece(
             PieceType.PAWN,
@@ -62,36 +61,11 @@ public class PawnStage extends Stage<PawnStage> {
         return self();
     }
 
-    public PawnStage $_is_vacant(String location) {
-        return self();
+    public PromotionStage a_pawn_in_the_other_side_of_the_chess_board() {
+        return a_$_pawn_in_$("BLACK", "A1");
     }
 
-    public PawnStage $_is_not_vacant(String location) {
-        history.add(
-            new PiecePositioned(
-                mock(Piece.class),
-                new Square(location)
-            )
-        );
-        return self();
-    }
-
-    public PawnStage an_opponent_piece_in_$(String opponentLocation) {
-        this.to = new Square(opponentLocation);
-        this.opponentPiece = pieceFactory.createPiece(
-            PieceType.PAWN,
-            pawn.color.opposite()
-        );
-        history.add(
-            new PiecePositioned(
-                opponentPiece,
-                to
-            )
-        );
-        return self();
-    }
-
-    public PawnStage the_pawn_is_moved_forward() {
+    public PromotionStage the_pawn_is_moved_forward() {
         this.to = from.neighbour(Direction.FORWARD, pawn.orientation()).orElseThrow(OutsideSquare::new);
         try {
             this.returnedEvents = ChessGame.move(
@@ -108,18 +82,24 @@ public class PawnStage extends Stage<PawnStage> {
         return self();
     }
 
-    public PawnStage the_pawn_is_moved_forward_two_squares() {
-        this.to = from
-            .neighbour(Direction.FORWARD, pawn.orientation())
-            .flatMap(forwardSquare -> forwardSquare.neighbour(Direction.FORWARD, pawn.orientation()))
-            .orElseThrow(OutsideSquare::new);
+    public PromotionStage the_pawn_is_promoted_for(String type) {
+        this.returnedEvents = ChessGame.promote(
+            Collections.unmodifiableList(history),
+            new PromotePawn(
+                from,
+                PieceType.valueOf(type)
+            )
+        );
+        return self();
+    }
+
+    public PromotionStage the_pawn_is_promoted_for_a_king() {
         try {
-            this.returnedEvents = ChessGame.move(
+            this.returnedEvents = ChessGame.promote(
                 Collections.unmodifiableList(history),
-                new MovePiece(
-                    pawn,
+                new PromotePawn(
                     from,
-                    to
+                    PieceType.KING
                 )
             );
         } catch (RulesViolation e) {
@@ -128,45 +108,31 @@ public class PawnStage extends Stage<PawnStage> {
         return self();
     }
 
-    public PawnStage the_opponent_piece_is_captured_by_the_pawn() {
-        this.returnedEvents = ChessGame.move(
-            Collections.unmodifiableList(history),
-            new MovePiece(
-                pawn,
-                from,
-                to
-            )
-        );
-        return self();
-    }
-
-    public PawnStage the_pawn_is_in_$(String to) {
+    public PromotionStage a_promotion_is_proposed_in_$(String to) {
         Assertions
             .assertThat(returnedEvents)
             .contains(
-                new PieceMoved(
-                    pawn,
-                    from,
+                new PromotionProposed(
                     new Square(to)
                 )
             );
         return self();
     }
 
-    public PawnStage the_pawn_stays_in_$(String location) {
+    public PromotionStage the_promotion_is_refused() {
         Assertions
             .assertThat(violation)
-            .isInstanceOf(ImpossibleToMove.class);
+            .isInstanceOf(PromotionRefused.class);
         return self();
     }
 
-    public PawnStage the_opponent_piece_is_removed_from_the_game() {
+    public PromotionStage a_$_replace_the_pawn(String type) {
         Assertions
             .assertThat(returnedEvents)
             .contains(
-                new PieceCaptured(
-                    opponentPiece,
-                    pawn
+                new PawnPromoted(
+                    from,
+                    pieceFactory.createPiece(PieceType.valueOf(type), pawn.color)
                 )
             );
         return self();

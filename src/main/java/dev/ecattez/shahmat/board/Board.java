@@ -1,9 +1,9 @@
 package dev.ecattez.shahmat.board;
 
-import dev.ecattez.shahmat.event.PawnTraded;
+import dev.ecattez.shahmat.event.PawnPromoted;
 import dev.ecattez.shahmat.event.PieceCaptured;
 import dev.ecattez.shahmat.event.PiecePositioned;
-import dev.ecattez.shahmat.event.TradeProposed;
+import dev.ecattez.shahmat.event.PromotionProposed;
 import dev.ecattez.shahmat.event.PieceMoved;
 
 import java.util.HashMap;
@@ -50,12 +50,12 @@ public class Board {
         // Nothing more to do
     }
 
-    public void apply(TradeProposed event) {
+    public void apply(PromotionProposed event) {
         // Nothing more to do
     }
 
-    public void apply(PawnTraded event) {
-        boardState.put(event.location, event.tradedBy);
+    public void apply(PawnPromoted event) {
+        boardState.put(event.location, event.promotedBy);
     }
 
     @Override

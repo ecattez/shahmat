@@ -1,11 +1,11 @@
 package dev.ecattez.shahmat.board;
 
-import dev.ecattez.shahmat.event.TradeProposed;
-import dev.ecattez.shahmat.board.pawn.PawnTradingRankVisitor;
+import dev.ecattez.shahmat.event.PromotionProposed;
+import dev.ecattez.shahmat.board.pawn.PawnPromotionRankVisitor;
 import dev.ecattez.shahmat.command.MovePiece;
-import dev.ecattez.shahmat.command.TradePawn;
+import dev.ecattez.shahmat.command.PromotePawn;
 import dev.ecattez.shahmat.event.BoardEvent;
-import dev.ecattez.shahmat.event.PawnTraded;
+import dev.ecattez.shahmat.event.PawnPromoted;
 import dev.ecattez.shahmat.event.PieceCaptured;
 import dev.ecattez.shahmat.event.PieceMoved;
 import dev.ecattez.shahmat.event.PiecePositioned;
@@ -20,7 +20,7 @@ public class ChessGame {
 
     private static final PieceTypeVisitor<MovingStrategy> MOVING_STRATEGIES = new MovingRules();
 
-    private static final PieceColorVisitor<Integer> TRADING_RANKS = new PawnTradingRankVisitor();
+    private static final PieceColorVisitor<Integer> PROMOTION_RANKS = new PawnPromotionRankVisitor();
 
     public static List<BoardEvent> move(
         List<BoardEvent> history,
@@ -65,38 +65,38 @@ public class ChessGame {
                 )
             ).ifPresent(events::add);
 
-        if (canBeTraded(pieceToMove, to)) {
+        if (canBePromoted(pieceToMove, to)) {
             events.add(
-                new TradeProposed(to)
+                new PromotionProposed(to)
             );
         }
 
         return events;
     }
 
-    public static List<BoardEvent> trade(
+    public static List<BoardEvent> promote(
         List<BoardEvent> history,
-        TradePawn command
+        PromotePawn command
     ) throws RulesViolation {
-        PieceType typeOfTrade = command.typeOfTrade;
+        PieceType typeOfPromotion = command.typeOfPromotion;
 
-        if (isTryingToTradeForAKing(typeOfTrade)) {
-            throw new TradeRefused(TradeRefused.Reason.TRADE_FOR_A_KING);
+        if (isTryingToPromoteForAKing(typeOfPromotion)) {
+            throw new PromotionRefused(PromotionRefused.Reason.PROMOTE_FOR_A_KING);
         }
 
         Square location = command.location;
-        Piece pieceToBeTraded = replay(history)
+        Piece pieceToBePromoted = replay(history)
             .getPiece(location)
             .orElseThrow(() -> new NoPieceOnSquare(location));
 
-        if (!canBeTraded(pieceToBeTraded, location)) {
-            throw new TradeRefused(TradeRefused.Reason.PIECE_IS_NOT_TRADABLE);
+        if (!canBePromoted(pieceToBePromoted, location)) {
+            throw new PromotionRefused(PromotionRefused.Reason.PIECE_CAN_NOT_BE_PROMOTED);
         }
 
         return Collections.singletonList(
-            new PawnTraded(
+            new PawnPromoted(
                 location,
-                PIECE_FACTORY.createPiece(typeOfTrade, pieceToBeTraded.color)
+                PIECE_FACTORY.createPiece(typeOfPromotion, pieceToBePromoted.color)
             )
         );
     }
@@ -111,10 +111,10 @@ public class ChessGame {
                 board.apply((PieceMoved) past);
             } else if (past instanceof PieceCaptured) {
                 board.apply((PieceCaptured) past);
-            } else if (past instanceof TradeProposed) {
-                board.apply((TradeProposed) past);
-            } else if (past instanceof PawnTraded) {
-                board.apply((PawnTraded) past);
+            } else if (past instanceof PromotionProposed) {
+                board.apply((PromotionProposed) past);
+            } else if (past instanceof PawnPromoted) {
+                board.apply((PawnPromoted) past);
             }
         }
         return board;
@@ -125,13 +125,13 @@ public class ChessGame {
             .canMove(pieceOnBoard, from, to, board);
     }
 
-    private static boolean isTryingToTradeForAKing(PieceType typeOfTrade) {
-        return PieceType.KING.equals(typeOfTrade);
+    private static boolean isTryingToPromoteForAKing(PieceType typeOfPromotion) {
+        return PieceType.KING.equals(typeOfPromotion);
     }
 
-    private static boolean canBeTraded(Piece pieceOnBoard, Square location) {
+    private static boolean canBePromoted(Piece pieceOnBoard, Square location) {
         return pieceOnBoard.isOfType(PieceType.PAWN)
-            && pieceOnBoard.color.accept(TRADING_RANKS)
+            && pieceOnBoard.color.accept(PROMOTION_RANKS)
                 .equals(location.rank.value);
     }
 

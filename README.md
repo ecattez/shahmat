@@ -22,7 +22,7 @@ Here are a few things to know about how a pawn chess piece moves:
 - It can move directly forward two squares on their first move only;
 - It can move diagonally forward when capturing an opponent's chess piece;
 - If there is another piece in front of it, the pawn is stuck, unless there is a piece ahead on the capturing diagonals;
-- Once it reaches the other side of the chess board, the player may *trade* the pawn in for any other chess piece if they choose, except another king.
+- Once it reaches the other side of the chess board, the player may *promote* the pawn in for any other chess piece if they choose, except another king.
 
 ![Pawn moves](https://cdn11.bigcommerce.com/s-dlmdd/content/pawn-moves.jpg)
 
