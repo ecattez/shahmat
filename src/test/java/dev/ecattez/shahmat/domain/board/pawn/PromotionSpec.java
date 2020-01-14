@@ -1,10 +1,23 @@
 package dev.ecattez.shahmat.domain.board.pawn;
 
 import com.tngtech.jgiven.annotation.ScenarioStage;
+import com.tngtech.jgiven.junit5.JGivenExtension;
 import com.tngtech.junit.dataprovider.DataProvider;
+import com.tngtech.junit.dataprovider.DataProviderExtension;
+import com.tngtech.junit.dataprovider.UseDataProviderExtension;
+import dev.ecattez.shahmat.domain.board.Rules;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestTemplate;
+import org.junit.jupiter.api.extension.ExtendWith;
 
+@ExtendWith({
+    JGivenExtension.class,
+    DataProviderExtension.class,
+    UseDataProviderExtension.class
+})
+@Rules
+@PawnTag
+@PromotionTag
 public class PromotionSpec {
 
     @ScenarioStage
