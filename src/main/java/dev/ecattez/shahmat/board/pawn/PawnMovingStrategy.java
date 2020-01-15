@@ -6,13 +6,18 @@ import dev.ecattez.shahmat.board.Direction;
 import dev.ecattez.shahmat.board.Orientation;
 import dev.ecattez.shahmat.board.Piece;
 import dev.ecattez.shahmat.board.Square;
+import dev.ecattez.shahmat.board.move.Capture;
+import dev.ecattez.shahmat.board.move.Movement;
+import dev.ecattez.shahmat.board.move.MoveOnVacant;
+import dev.ecattez.shahmat.event.BoardEvent;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class PawnMovingStrategy extends AbstractMovingStrategy {
 
@@ -23,47 +28,57 @@ public class PawnMovingStrategy extends AbstractMovingStrategy {
 
     private static final PawnStartingRankVisitor STARTING_RANK_VISITOR = new PawnStartingRankVisitor();
 
+    private static final EnPassantMovingStrategy EN_PASSANT_MOVING_STRATEGY = new EnPassantMovingStrategy();
+
     @Override
-    public List<Square> availableMoves(Piece piece, Square from, Board board) {
-        List<Square> moves = new LinkedList<>();
-        Orientation orientation = piece.orientation();
-        int numberOfMoves = getNumberOfMoves(piece, from);
+    public List<Movement> getAvailableMovements(Piece piece, Square from, Board board, List<BoardEvent> history) {
+        return Stream.of(
+            getVacantNeighbours(piece, from, board),
+            getCapturablePieces(piece, from, board),
+            getCapturablePiecesEnPassant(piece, from, board, history)
+        )
+        .flatMap(Collection::stream)
+        .collect(Collectors.toList());
+    }
 
-        moves.addAll(getVacantNeighbours(from, orientation, board, numberOfMoves, new ArrayList<>()));
-        moves.addAll(getCapturablePieces(piece, from, orientation, board));
-
-        return moves;
+    private List<Movement> getVacantNeighbours(Piece piece, Square from, Board board) {
+        return getVacantNeighbours(from, piece.orientation(), board, getNumberOfMoves(piece, from), new ArrayList<>())
+            .stream()
+            .map(to -> new MoveOnVacant(piece, from, to))
+            .collect(Collectors.toList());
     }
 
     private List<Square> getVacantNeighbours(Square from, Orientation orientation, Board board, int numberOfMoves, List<Square> neighboursKept) {
         if (numberOfMoves < 1) {
             return neighboursKept;
         }
-
-        Optional<Square> neighbourOptional = from.neighbour(Direction.FORWARD, orientation);
-        if (!neighbourOptional.isPresent()) {
-            return neighboursKept;
-        }
-
-        Square forwardSquare = neighbourOptional.get();
-        if (board.isVacant(forwardSquare)) {
-            neighboursKept.add(forwardSquare);
-        }
-        return getVacantNeighbours(
-            forwardSquare,
-            orientation,
-            board,
-            numberOfMoves - 1,
-            neighboursKept
-        );
+        return from.neighbour(Direction.FORWARD, orientation)
+            .map(forwardSquare -> {
+                if (board.isVacant(forwardSquare)) {
+                    neighboursKept.add(forwardSquare);
+                }
+                return getVacantNeighbours(
+                    forwardSquare,
+                    orientation,
+                    board,
+                    numberOfMoves - 1,
+                    neighboursKept
+                );
+            })
+            .orElse(neighboursKept);
     }
 
-    private List<Square> getCapturablePieces(Piece piece, Square from, Orientation orientation, Board board) {
+    private List<Movement> getCapturablePieces(Piece piece, Square from, Board board) {
         return Arrays.stream(CAPTURABLE_DIRECTIONS)
-            .map(direction -> from.neighbour(direction, orientation))
+            .map(direction -> from.neighbour(direction, piece.orientation()))
             .flatMap(Optional::stream)
             .filter(neighbour -> board.isOpponentOf(neighbour, piece))
+            .map(neighbour -> new Capture(piece, from, neighbour, board.unsafeGetPiece(neighbour)))
             .collect(Collectors.toList());
+    }
+
+    private List<Movement> getCapturablePiecesEnPassant(Piece piece, Square from, Board board, List<BoardEvent> history) {
+        return EN_PASSANT_MOVING_STRATEGY.getAvailableMovements(piece, from, board, history);
     }
 
     private boolean isOnItsStartingRank(Piece piece, Square location) {

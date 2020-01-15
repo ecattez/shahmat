@@ -42,7 +42,7 @@ public class PromotionSpec {
         "BLACK, G2, G1",
         "BLACK, H2, H1",
     })
-    public void promotion_may_be_proposed_when_a_pawn_reaches_the_other_side_of_the_chess_board(
+    public void promotion_is_proposed_when_a_pawn_reaches_the_other_side_of_the_chess_board(
         String color,
         String from,
         String to
@@ -53,11 +53,15 @@ public class PromotionSpec {
             .then().a_promotion_is_proposed_in_$(to);
     }
 
-    @Test
-    public void pawn_can_not_be_promoted_for_a_king() {
+    @TestTemplate
+    @DataProvider(value = {
+        "PAWN",
+        "KING",
+    })
+    public void pawn_can_not_be_promoted_for_a_pawn_nor_a_king(String pieceType) {
         stage
             .given().a_pawn_in_the_other_side_of_the_chess_board()
-            .when().the_pawn_is_promoted_for_a_king()
+            .when().the_pawn_is_promoted_for_a_$(pieceType)
             .then().the_promotion_is_refused();
     }
 
@@ -66,15 +70,14 @@ public class PromotionSpec {
         "QUEEN",
         "KNIGHT",
         "ROOK",
-        "BISHOP",
-        "PAWN"
+        "BISHOP"
     })
-    public void pawn_may_be_promoted_for_a_non_king_piece(
+    public void pawn_can_be_promoted(
         String promotionType
     ) {
         stage
             .given().a_pawn_in_the_other_side_of_the_chess_board()
-            .when().the_pawn_is_promoted_for(promotionType)
+            .when().the_pawn_is_promoted_for_a_$(promotionType)
             .then().a_$_replaces_the_pawn(promotionType);
     }
 

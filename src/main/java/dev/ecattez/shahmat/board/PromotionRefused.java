@@ -7,7 +7,7 @@ public class PromotionRefused extends RulesViolation {
     }
 
     public enum Reason {
-        PROMOTE_FOR_A_KING("Promotion is not allowed with a King"),
+        PIECE_CAN_NOT_PROMOTE("Piece can not promote"),
         PIECE_CAN_NOT_BE_PROMOTED("Piece can not be promoted");
 
         public final String message;

@@ -2,9 +2,9 @@ package dev.ecattez.shahmat.domain.board.pawn;
 
 import com.tngtech.jgiven.Stage;
 import com.tngtech.jgiven.annotation.BeforeStage;
-import dev.ecattez.shahmat.board.ImpossibleToMove;
 import dev.ecattez.shahmat.board.ChessGame;
 import dev.ecattez.shahmat.board.Direction;
+import dev.ecattez.shahmat.board.ImpossibleToMove;
 import dev.ecattez.shahmat.board.OutsideSquare;
 import dev.ecattez.shahmat.board.Piece;
 import dev.ecattez.shahmat.board.PieceBox;
@@ -26,13 +26,14 @@ import java.util.List;
 
 import static org.mockito.Mockito.mock;
 
-public class PawnStage extends Stage<PawnStage> {
+public class EnPassantStage extends Stage<EnPassantStage> {
 
     private PieceFactory pieceFactory;
     private Piece pawn;
     private Square from;
     private Square to;
-    private Piece opponentPiece;
+    private Piece opponentPawn;
+    private Square opponentLocation;
     private List<BoardEvent> returnedEvents;
     private List<BoardEvent> history;
     private RulesViolation violation;
@@ -43,7 +44,7 @@ public class PawnStage extends Stage<PawnStage> {
         this.history = new LinkedList<>();
     }
 
-    public PawnStage a_$_pawn_in_$(String color, String from) {
+    public EnPassantStage a_$_pawn_in_$(String color, String from) {
         this.from = new Square(from);
         this.pawn = pieceFactory.createPiece(
             PieceType.PAWN,
@@ -58,73 +59,47 @@ public class PawnStage extends Stage<PawnStage> {
         return self();
     }
 
-    public PawnStage $_is_vacant(String location) {
-        // Todo: nettoyer la case au cas où ?
-        return self();
-    }
-
-    public PawnStage $_is_not_vacant(String location) {
-        history.add(
-            new PiecePositioned(
-                mock(Piece.class),
-                new Square(location)
-            )
-        );
-        return self();
-    }
-
-    public PawnStage an_opponent_piece_in_$(String opponentLocation) {
-        this.to = new Square(opponentLocation);
-        this.opponentPiece = pieceFactory.createPiece(
+    public EnPassantStage an_opponent_pawn_that_moved_forward_two_squares_on_a_neighbouring_file(String opponentFile) {
+        this.opponentPawn = pieceFactory.createPiece(
             PieceType.PAWN,
             pawn.color.opposite()
         );
+
+        this.opponentLocation = new Square(new Square.File(opponentFile), from.rank);
+
         history.add(
-            new PiecePositioned(
-                opponentPiece,
-                to
+            new PieceMoved(
+                opponentPawn,
+                opponentLocation
+                    .neighbour(Direction.BACKWARD, opponentPawn.orientation(), 2)
+                    .orElseThrow(OutsideSquare::new),
+                opponentLocation
             )
         );
-        return self();
-    }
 
-    public PawnStage the_pawn_is_moved_forward() {
-        this.to = from.neighbour(Direction.FORWARD, pawn.orientation()).orElseThrow(OutsideSquare::new);
-        try {
-            this.returnedEvents = ChessGame.move(
-                Collections.unmodifiableList(history),
-                new Move(
-                    pawn,
-                    from,
-                    to
-                )
-            );
-        } catch (RulesViolation e) {
-            violation = e;
-        }
-        return self();
-    }
-
-    public PawnStage the_pawn_is_moved_forward_two_squares() {
-        this.to = from
-            .neighbour(Direction.FORWARD, pawn.orientation(), 2)
+        this.to = opponentLocation
+            .neighbour(Direction.BACKWARD, opponentPawn.orientation())
             .orElseThrow(OutsideSquare::new);
-        try {
-            this.returnedEvents = ChessGame.move(
-                Collections.unmodifiableList(history),
-                new Move(
-                    pawn,
-                    from,
-                    to
-                )
-            );
-        } catch (RulesViolation e) {
-            violation = e;
-        }
+
         return self();
     }
 
-    public PawnStage the_opponent_piece_is_captured_by_the_pawn() {
+    public EnPassantStage an_other_opponent_piece_as_moved_since() {
+        this.history.add(
+            new PieceMoved(
+                pieceFactory.createPiece(
+                    mock(PieceType.class),
+                    pawn.color.opposite()
+                ),
+                mock(Square.class),
+                mock(Square.class)
+            )
+        );
+
+        return self();
+    }
+
+    public EnPassantStage the_opponent_pawn_is_immediately_captured_en_passant() {
         this.returnedEvents = ChessGame.move(
             Collections.unmodifiableList(history),
             new Move(
@@ -136,10 +111,26 @@ public class PawnStage extends Stage<PawnStage> {
         return self();
     }
 
-    public PawnStage the_pawn_is_in_$(String to) {
+    public EnPassantStage the_opponent_pawn_is_captured_en_passant() {
+        try {
+            this.returnedEvents = ChessGame.move(
+                Collections.unmodifiableList(history),
+                new Move(
+                    pawn,
+                    from,
+                    to
+                )
+            );
+        } catch (RulesViolation e) {
+            violation = e;
+        }
+        return self();
+    }
+
+    public EnPassantStage the_pawn_is_in_$(String to) {
         Assertions
             .assertThat(returnedEvents)
-            .contains(
+            .containsSubsequence(
                 new PieceMoved(
                     pawn,
                     from,
@@ -149,23 +140,23 @@ public class PawnStage extends Stage<PawnStage> {
         return self();
     }
 
-    public PawnStage the_pawn_stays_in_$(String location) {
-        Assertions
-            .assertThat(violation)
-            .isInstanceOf(ImpossibleToMove.class);
-        return self();
-    }
-
-    public PawnStage the_opponent_piece_is_removed_from_the_game() {
+    public EnPassantStage the_opponent_pawn_is_removed_from_the_game() {
         Assertions
             .assertThat(returnedEvents)
             .contains(
                 new PieceCaptured(
-                    opponentPiece,
+                    opponentPawn,
                     pawn,
-                    to
+                    opponentLocation
                 )
             );
+        return self();
+    }
+
+    public EnPassantStage the_capture_is_refused() {
+        Assertions
+            .assertThat(violation)
+            .isInstanceOf(ImpossibleToMove.class);
         return self();
     }
 }

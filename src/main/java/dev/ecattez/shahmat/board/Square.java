@@ -1,7 +1,9 @@
 package dev.ecattez.shahmat.board;
 
+import java.io.File;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class Square {
 
@@ -35,6 +37,26 @@ public class Square {
         return orientation.accept(
             new SquareNeighborhoodVisitor(direction, this)
         );
+    }
+
+    public Optional<Square> neighbour(Direction direction, Orientation orientation, int times) {
+        Square current = this;
+        for (int i = 1; i <= times; i++) {
+            Optional<Square> found = orientation.accept(
+                new SquareNeighborhoodVisitor(direction, current)
+            );
+
+            if (found.isEmpty()) {
+                return Optional.empty();
+            }
+
+            if (i == times) {
+                return found;
+            }
+
+            current = found.get();
+        }
+        return Optional.empty();
     }
 
     @Override

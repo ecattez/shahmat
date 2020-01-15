@@ -27,6 +27,14 @@ public class Board {
         return Optional.ofNullable(boardState.get(location));
     }
 
+    public Piece unsafeGetPiece(Square location) throws NoPieceOnSquare {
+        Piece piece = boardState.get(location);
+        if (piece == null) {
+            throw new NoPieceOnSquare(location);
+        }
+        return piece;
+    }
+
     public boolean isVacant(Square location) {
         return boardState.get(location) == null;
     }

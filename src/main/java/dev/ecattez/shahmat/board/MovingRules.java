@@ -1,5 +1,6 @@
 package dev.ecattez.shahmat.board;
 
+import dev.ecattez.shahmat.board.move.MovingStrategy;
 import dev.ecattez.shahmat.board.pawn.PawnMovingStrategy;
 
 public class MovingRules implements PieceTypeVisitor<MovingStrategy> {

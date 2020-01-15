@@ -4,7 +4,6 @@ import com.tngtech.jgiven.Stage;
 import com.tngtech.jgiven.annotation.BeforeStage;
 import dev.ecattez.shahmat.board.ChessGame;
 import dev.ecattez.shahmat.board.Direction;
-import dev.ecattez.shahmat.board.ImpossibleToMove;
 import dev.ecattez.shahmat.board.OutsideSquare;
 import dev.ecattez.shahmat.board.Piece;
 import dev.ecattez.shahmat.board.PieceBox;
@@ -14,12 +13,10 @@ import dev.ecattez.shahmat.board.PieceType;
 import dev.ecattez.shahmat.board.PromotionRefused;
 import dev.ecattez.shahmat.board.RulesViolation;
 import dev.ecattez.shahmat.board.Square;
-import dev.ecattez.shahmat.command.MovePiece;
-import dev.ecattez.shahmat.command.PromotePawn;
+import dev.ecattez.shahmat.command.Move;
+import dev.ecattez.shahmat.command.Promote;
 import dev.ecattez.shahmat.event.BoardEvent;
 import dev.ecattez.shahmat.event.PawnPromoted;
-import dev.ecattez.shahmat.event.PieceCaptured;
-import dev.ecattez.shahmat.event.PieceMoved;
 import dev.ecattez.shahmat.event.PiecePositioned;
 import dev.ecattez.shahmat.event.PromotionProposed;
 import org.assertj.core.api.Assertions;
@@ -70,7 +67,7 @@ public class PromotionStage extends Stage<PromotionStage> {
         try {
             this.returnedEvents = ChessGame.move(
                 Collections.unmodifiableList(history),
-                new MovePiece(
+                new Move(
                     pawn,
                     from,
                     to
@@ -82,24 +79,13 @@ public class PromotionStage extends Stage<PromotionStage> {
         return self();
     }
 
-    public PromotionStage the_pawn_is_promoted_for(String type) {
-        this.returnedEvents = ChessGame.promote(
-            Collections.unmodifiableList(history),
-            new PromotePawn(
-                from,
-                PieceType.valueOf(type)
-            )
-        );
-        return self();
-    }
-
-    public PromotionStage the_pawn_is_promoted_for_a_king() {
+    public PromotionStage the_pawn_is_promoted_for_a_$(String pieceType) {
         try {
             this.returnedEvents = ChessGame.promote(
                 Collections.unmodifiableList(history),
-                new PromotePawn(
+                new Promote(
                     from,
-                    PieceType.KING
+                    PieceType.valueOf(pieceType)
                 )
             );
         } catch (RulesViolation e) {
