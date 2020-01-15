@@ -6,7 +6,6 @@ import com.tngtech.junit.dataprovider.DataProvider;
 import com.tngtech.junit.dataprovider.DataProviderExtension;
 import com.tngtech.junit.dataprovider.UseDataProviderExtension;
 import dev.ecattez.shahmat.domain.board.Rules;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -61,7 +60,7 @@ public class PromotionSpec {
     public void pawn_can_not_be_promoted_for_a_pawn_nor_a_king(String pieceType) {
         stage
             .given().a_pawn_in_the_other_side_of_the_chess_board()
-            .when().the_pawn_is_promoted_for_a_$(pieceType)
+            .when().the_pawn_is_promoted_to_a_$(pieceType)
             .then().the_promotion_is_refused();
     }
 
@@ -77,7 +76,7 @@ public class PromotionSpec {
     ) {
         stage
             .given().a_pawn_in_the_other_side_of_the_chess_board()
-            .when().the_pawn_is_promoted_for_a_$(promotionType)
+            .when().the_pawn_is_promoted_to_a_$(promotionType)
             .then().a_$_replaces_the_pawn(promotionType);
     }
 

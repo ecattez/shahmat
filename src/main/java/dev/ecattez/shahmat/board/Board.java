@@ -49,13 +49,15 @@ public class Board {
         boardState.put(event.position, event.piece);
     }
 
+    public void apply(PieceCaptured event) {
+        getPiece(event.location)
+            .filter(event.captured::equals)
+            .ifPresent(captured -> boardState.remove(event.location));
+    }
+
     public void apply(PieceMoved event) {
         boardState.remove(event.from);
         boardState.put(event.to, event.piece);
-    }
-
-    public void apply(PieceCaptured event) {
-        // Nothing more to do
     }
 
     public void apply(PromotionProposed event) {
@@ -63,7 +65,7 @@ public class Board {
     }
 
     public void apply(PawnPromoted event) {
-        boardState.put(event.location, event.promotedBy);
+        boardState.put(event.location, event.promotedTo);
     }
 
     @Override

@@ -79,7 +79,7 @@ public class PromotionStage extends Stage<PromotionStage> {
         return self();
     }
 
-    public PromotionStage the_pawn_is_promoted_for_a_$(String pieceType) {
+    public PromotionStage the_pawn_is_promoted_to_a_$(String pieceType) {
         try {
             this.returnedEvents = ChessGame.promote(
                 Collections.unmodifiableList(history),

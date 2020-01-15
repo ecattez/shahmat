@@ -29,7 +29,7 @@ public class EnPassantSpec {
         "BLACK, C4, D, D3",
         "BLACK, C4, B, B3",
     })
-    public void a_$_pawn_can_immediately_capture_an_opposite_pawn_that_moved_forward_two_squares_on_a_neighbouring_file(
+    public void pawn_can_immediately_capture_an_opponent_pawn_that_moved_forward_two_squares_on_a_neighbouring_file(
         String color,
         String from,
         String opponentRank,
@@ -48,7 +48,7 @@ public class EnPassantSpec {
         "WHITE, C5, B",
         "BLACK, C4, D",
     })
-    public void a_$_pawn_can_not_capture_an_opposite_pawn_that_moved_forward_two_squares_on_a_neighbouring_file(
+    public void pawn_can_not_capture_an_opponent_pawn_that_moved_forward_two_squares_on_a_neighbouring_file(
         String color,
         String from,
         String opponentRank

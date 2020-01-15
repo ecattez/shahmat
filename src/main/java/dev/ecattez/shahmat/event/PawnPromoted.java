@@ -8,11 +8,11 @@ import java.util.Objects;
 public class PawnPromoted implements BoardEvent {
 
     public final Square location;
-    public final Piece promotedBy;
+    public final Piece promotedTo;
 
-    public PawnPromoted(Square location, Piece promotedBy) {
+    public PawnPromoted(Square location, Piece promotedTo) {
         this.location = location;
-        this.promotedBy = promotedBy;
+        this.promotedTo = promotedTo;
     }
 
     @Override
@@ -21,19 +21,19 @@ public class PawnPromoted implements BoardEvent {
         if (o == null || getClass() != o.getClass()) return false;
         PawnPromoted that = (PawnPromoted) o;
         return Objects.equals(location, that.location) &&
-            Objects.equals(promotedBy, that.promotedBy);
+            Objects.equals(promotedTo, that.promotedTo);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(location, promotedBy);
+        return Objects.hash(location, promotedTo);
     }
 
     @Override
     public String toString() {
         return "PawnPromoted{" +
             "location=" + location +
-            ", promotedBy=" + promotedBy +
+            ", promotedTo=" + promotedTo +
             '}';
     }
 }
