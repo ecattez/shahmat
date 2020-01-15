@@ -2,16 +2,16 @@ package dev.ecattez.shahmat.domain.board.pawn;
 
 import com.tngtech.jgiven.Stage;
 import com.tngtech.jgiven.annotation.BeforeStage;
-import dev.ecattez.shahmat.board.ChessGame;
+import dev.ecattez.shahmat.game.ChessGame;
 import dev.ecattez.shahmat.board.Direction;
-import dev.ecattez.shahmat.board.ImpossibleToMove;
-import dev.ecattez.shahmat.board.OutsideSquare;
+import dev.ecattez.shahmat.board.violation.ImpossibleToMove;
+import dev.ecattez.shahmat.board.violation.OutsideSquare;
 import dev.ecattez.shahmat.board.Piece;
 import dev.ecattez.shahmat.board.PieceBox;
 import dev.ecattez.shahmat.board.PieceColor;
 import dev.ecattez.shahmat.board.PieceFactory;
 import dev.ecattez.shahmat.board.PieceType;
-import dev.ecattez.shahmat.board.RulesViolation;
+import dev.ecattez.shahmat.board.violation.RulesViolation;
 import dev.ecattez.shahmat.board.Square;
 import dev.ecattez.shahmat.command.Move;
 import dev.ecattez.shahmat.event.BoardEvent;
@@ -40,7 +40,7 @@ public class EnPassantStage extends Stage<EnPassantStage> {
 
     @BeforeStage
     public void init() {
-        this.pieceFactory = new PieceBox();
+        this.pieceFactory = PieceBox.getInstance();
         this.history = new LinkedList<>();
     }
 
@@ -71,14 +71,14 @@ public class EnPassantStage extends Stage<EnPassantStage> {
             new PieceMoved(
                 opponentPawn,
                 opponentLocation
-                    .neighbour(Direction.BACKWARD, opponentPawn.orientation(), 2)
+                    .findNeighbour(Direction.BACKWARD, opponentPawn.orientation(), 2)
                     .orElseThrow(OutsideSquare::new),
                 opponentLocation
             )
         );
 
         this.to = opponentLocation
-            .neighbour(Direction.BACKWARD, opponentPawn.orientation())
+            .findNeighbour(Direction.BACKWARD, opponentPawn.orientation())
             .orElseThrow(OutsideSquare::new);
 
         return self();

@@ -2,16 +2,16 @@ package dev.ecattez.shahmat.domain.board.pawn;
 
 import com.tngtech.jgiven.Stage;
 import com.tngtech.jgiven.annotation.BeforeStage;
-import dev.ecattez.shahmat.board.ImpossibleToMove;
-import dev.ecattez.shahmat.board.ChessGame;
+import dev.ecattez.shahmat.board.violation.ImpossibleToMove;
+import dev.ecattez.shahmat.game.ChessGame;
 import dev.ecattez.shahmat.board.Direction;
-import dev.ecattez.shahmat.board.OutsideSquare;
+import dev.ecattez.shahmat.board.violation.OutsideSquare;
 import dev.ecattez.shahmat.board.Piece;
 import dev.ecattez.shahmat.board.PieceBox;
 import dev.ecattez.shahmat.board.PieceColor;
 import dev.ecattez.shahmat.board.PieceFactory;
 import dev.ecattez.shahmat.board.PieceType;
-import dev.ecattez.shahmat.board.RulesViolation;
+import dev.ecattez.shahmat.board.violation.RulesViolation;
 import dev.ecattez.shahmat.board.Square;
 import dev.ecattez.shahmat.command.Move;
 import dev.ecattez.shahmat.event.BoardEvent;
@@ -39,7 +39,7 @@ public class PawnStage extends Stage<PawnStage> {
 
     @BeforeStage
     public void init() {
-        this.pieceFactory = new PieceBox();
+        this.pieceFactory = PieceBox.getInstance();
         this.history = new LinkedList<>();
     }
 
@@ -89,7 +89,7 @@ public class PawnStage extends Stage<PawnStage> {
     }
 
     public PawnStage the_pawn_is_moved_forward() {
-        this.to = from.neighbour(Direction.FORWARD, pawn.orientation()).orElseThrow(OutsideSquare::new);
+        this.to = from.findNeighbour(Direction.FORWARD, pawn.orientation()).orElseThrow(OutsideSquare::new);
         try {
             this.returnedEvents = ChessGame.move(
                 Collections.unmodifiableList(history),
@@ -107,7 +107,7 @@ public class PawnStage extends Stage<PawnStage> {
 
     public PawnStage the_pawn_is_moved_forward_two_squares() {
         this.to = from
-            .neighbour(Direction.FORWARD, pawn.orientation(), 2)
+            .findNeighbour(Direction.FORWARD, pawn.orientation(), 2)
             .orElseThrow(OutsideSquare::new);
         try {
             this.returnedEvents = ChessGame.move(

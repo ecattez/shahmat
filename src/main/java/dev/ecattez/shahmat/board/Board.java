@@ -1,5 +1,6 @@
 package dev.ecattez.shahmat.board;
 
+import dev.ecattez.shahmat.board.violation.NoPieceOnSquare;
 import dev.ecattez.shahmat.event.PawnPromoted;
 import dev.ecattez.shahmat.event.PieceCaptured;
 import dev.ecattez.shahmat.event.PiecePositioned;
@@ -23,16 +24,13 @@ public class Board {
         this.boardState = new HashMap<>();
     }
 
-    public Optional<Piece> getPiece(Square location) {
+    public Optional<Piece> findPiece(Square location) {
         return Optional.ofNullable(boardState.get(location));
     }
 
-    public Piece unsafeGetPiece(Square location) throws NoPieceOnSquare {
-        Piece piece = boardState.get(location);
-        if (piece == null) {
-            throw new NoPieceOnSquare(location);
-        }
-        return piece;
+    public Piece getPiece(Square location) throws NoPieceOnSquare {
+        return findPiece(location)
+            .orElseThrow(() -> new NoPieceOnSquare(location));
     }
 
     public boolean isVacant(Square location) {
@@ -40,7 +38,7 @@ public class Board {
     }
 
     public boolean isOpponentOf(Square neighbour, Piece piece) {
-        return getPiece(neighbour)
+        return findPiece(neighbour)
             .filter(piece::isOpponent)
             .isPresent();
     }
@@ -50,7 +48,7 @@ public class Board {
     }
 
     public void apply(PieceCaptured event) {
-        getPiece(event.location)
+        findPiece(event.location)
             .filter(event.captured::equals)
             .ifPresent(captured -> boardState.remove(event.location));
     }
@@ -79,6 +77,11 @@ public class Board {
     @Override
     public int hashCode() {
         return Objects.hash(boardState);
+    }
+
+    @Override
+    public String toString() {
+        return new BoardStringFormatter().format(this);
     }
 
 }

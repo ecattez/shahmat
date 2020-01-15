@@ -1,4 +1,7 @@
-package dev.ecattez.shahmat.board;
+package dev.ecattez.shahmat.board.violation;
+
+import dev.ecattez.shahmat.board.Piece;
+import dev.ecattez.shahmat.board.Square;
 
 public class ImpossibleToMove extends RulesViolation {
 

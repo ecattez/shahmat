@@ -1,4 +1,4 @@
-package dev.ecattez.shahmat.board;
+package dev.ecattez.shahmat.board.violation;
 
 public class InvalidFile extends InvalidPosition {
 

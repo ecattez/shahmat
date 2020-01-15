@@ -10,8 +10,8 @@ import java.util.Optional;
 
 public interface MovingStrategy {
 
-    Optional<Movement> getMovement(Piece piece, Square from, Square to, Board board, List<BoardEvent> history);
+    Optional<Movement> findMovement(List<BoardEvent> history, Board board, Piece piece, Square from, Square to);
 
-    List<Movement> getAvailableMovements(Piece piece, Square from, Board board, List<BoardEvent> history);
+    List<Movement> getAvailableMovements(List<BoardEvent> history, Board board, Piece piece, Square from);
 
 }

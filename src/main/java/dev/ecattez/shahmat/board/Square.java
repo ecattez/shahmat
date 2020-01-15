@@ -1,9 +1,14 @@
 package dev.ecattez.shahmat.board;
 
-import java.io.File;
+import dev.ecattez.shahmat.board.violation.InvalidFile;
+import dev.ecattez.shahmat.board.violation.InvalidPosition;
+import dev.ecattez.shahmat.board.violation.InvalidRank;
+import dev.ecattez.shahmat.board.violation.InvalidSquare;
+import dev.ecattez.shahmat.board.violation.OutsideFile;
+import dev.ecattez.shahmat.board.violation.OutsideRank;
+
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class Square {
 
@@ -33,13 +38,23 @@ public class Square {
         this.rank = rank;
     }
 
-    public Optional<Square> neighbour(Direction direction, Orientation orientation) {
+    public Optional<Square> findNeighbour(Direction direction, Orientation orientation) {
         return orientation.accept(
             new SquareNeighborhoodVisitor(direction, this)
         );
     }
 
-    public Optional<Square> neighbour(Direction direction, Orientation orientation, int times) {
+    public Square getNeighbour(Direction direction, Orientation orientation) throws InvalidPosition {
+        return findNeighbour(direction, orientation)
+            .orElseThrow(() -> new InvalidPosition("Neighbour does not exists"));
+    }
+
+    public boolean hasNeighbour(Direction direction, Orientation orientation) {
+        return findNeighbour(direction, orientation)
+            .isPresent();
+    }
+
+    public Optional<Square> findNeighbour(Direction direction, Orientation orientation, int times) {
         Square current = this;
         for (int i = 1; i <= times; i++) {
             Optional<Square> found = orientation.accept(
@@ -81,6 +96,9 @@ public class Square {
     // Todo: enum ?
     public static final class File {
 
+        public static final File FIRST = new File("A");
+        public static final File LAST = new File("H");
+
         public final String value;
 
         public File(String value) throws InvalidFile {
@@ -109,11 +127,19 @@ public class Square {
         }
 
         public boolean isFirst() {
-            return "A".equals(value);
+            return FIRST.equals(this);
         }
 
         public boolean isLast() {
-            return "H".equals(value);
+            return LAST.equals(this);
+        }
+
+        public boolean hasPrevious() {
+            return exists(String.valueOf((char) (value.charAt(0) - 1)));
+        }
+
+        public boolean hasNext() {
+            return exists(String.valueOf((char) (value.charAt(0) + 1)));
         }
 
         public File previous() throws OutsideFile {
@@ -122,6 +148,12 @@ public class Square {
 
         public File next() throws OutsideFile {
             return other(String.valueOf((char) (value.charAt(0) + 1)));
+        }
+
+        private static boolean exists(String file) throws OutsideFile {
+            return Optional.of(file)
+                .filter(value -> value.matches(FILE_PATTERN))
+                .isPresent();
         }
 
         private static File other(String file) throws OutsideFile {
@@ -133,6 +165,9 @@ public class Square {
     }
 
     public static final class Rank {
+
+        public static final Rank FIRST = new Rank(1);
+        public static final Rank LAST = new Rank(8);
 
         public final int value;
 
@@ -162,11 +197,19 @@ public class Square {
         }
 
         public boolean isFirst() {
-            return value == 1;
+            return FIRST.equals(this);
         }
 
         public boolean isLast() {
-            return value == 8;
+            return LAST.equals(this);
+        }
+
+        public boolean hasPrevious() {
+            return exists(value - 1);
+        }
+
+        public boolean hasNext() {
+            return exists(value + 1);
         }
 
         public Rank previous() throws OutsideRank {
@@ -175,6 +218,12 @@ public class Square {
 
         public Rank next() throws OutsideRank {
             return other(value + 1);
+        }
+
+        private static boolean exists(int rank) {
+            return Optional.of(rank)
+                .filter(value -> String.valueOf(value).matches(RANK_PATTERN))
+                .isPresent();
         }
 
         private static Rank other(int rank) throws OutsideRank {

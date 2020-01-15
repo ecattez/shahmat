@@ -2,16 +2,16 @@ package dev.ecattez.shahmat.domain.board.pawn;
 
 import com.tngtech.jgiven.Stage;
 import com.tngtech.jgiven.annotation.BeforeStage;
-import dev.ecattez.shahmat.board.ChessGame;
+import dev.ecattez.shahmat.game.ChessGame;
 import dev.ecattez.shahmat.board.Direction;
-import dev.ecattez.shahmat.board.OutsideSquare;
+import dev.ecattez.shahmat.board.violation.OutsideSquare;
 import dev.ecattez.shahmat.board.Piece;
 import dev.ecattez.shahmat.board.PieceBox;
 import dev.ecattez.shahmat.board.PieceColor;
 import dev.ecattez.shahmat.board.PieceFactory;
 import dev.ecattez.shahmat.board.PieceType;
-import dev.ecattez.shahmat.board.PromotionRefused;
-import dev.ecattez.shahmat.board.RulesViolation;
+import dev.ecattez.shahmat.board.violation.PromotionRefused;
+import dev.ecattez.shahmat.board.violation.RulesViolation;
 import dev.ecattez.shahmat.board.Square;
 import dev.ecattez.shahmat.command.Move;
 import dev.ecattez.shahmat.command.Promote;
@@ -39,7 +39,7 @@ public class PromotionStage extends Stage<PromotionStage> {
 
     @BeforeStage
     public void init() {
-        this.pieceFactory = new PieceBox();
+        this.pieceFactory = PieceBox.getInstance();
         this.history = new LinkedList<>();
     }
 
@@ -63,7 +63,7 @@ public class PromotionStage extends Stage<PromotionStage> {
     }
 
     public PromotionStage the_pawn_is_moved_forward() {
-        this.to = from.neighbour(Direction.FORWARD, pawn.orientation()).orElseThrow(OutsideSquare::new);
+        this.to = from.findNeighbour(Direction.FORWARD, pawn.orientation()).orElseThrow(OutsideSquare::new);
         try {
             this.returnedEvents = ChessGame.move(
                 Collections.unmodifiableList(history),
@@ -79,13 +79,13 @@ public class PromotionStage extends Stage<PromotionStage> {
         return self();
     }
 
-    public PromotionStage the_pawn_is_promoted_to_a_$(String pieceType) {
+    public PromotionStage the_pawn_is_promoted_to_a_$(String promotionType) {
         try {
             this.returnedEvents = ChessGame.promote(
                 Collections.unmodifiableList(history),
                 new Promote(
                     from,
-                    PieceType.valueOf(pieceType)
+                    PieceType.valueOf(promotionType)
                 )
             );
         } catch (RulesViolation e) {

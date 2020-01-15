@@ -1,6 +1,6 @@
 package dev.ecattez.shahmat.board.pawn;
 
-import dev.ecattez.shahmat.board.AbstractMovingStrategy;
+import dev.ecattez.shahmat.board.move.AbstractMovingStrategy;
 import dev.ecattez.shahmat.board.Board;
 import dev.ecattez.shahmat.board.Direction;
 import dev.ecattez.shahmat.board.Orientation;
@@ -32,7 +32,7 @@ public class EnPassantMovingStrategy extends AbstractMovingStrategy {
     }
 
     @Override
-    public List<Movement> getAvailableMovements(Piece piece, Square from, Board board, List<BoardEvent> history) {
+    public List<Movement> getAvailableMovements(List<BoardEvent> history, Board board, Piece piece, Square from) {
         if (!isOnEnPassantRank(piece, from) || !piece.isOfType(PieceType.PAWN)) {
             return Collections.emptyList();
         }
@@ -42,7 +42,7 @@ public class EnPassantMovingStrategy extends AbstractMovingStrategy {
         Orientation currentOrientation = piece.orientation();
 
         return Arrays.stream(EN_PASSANT_CAPTURABLE_DIRECTIONS)
-            .map(direction -> from.neighbour(direction, currentOrientation))
+            .map(direction -> from.findNeighbour(direction, currentOrientation))
             .flatMap(Optional::stream)
             .filter(neighbourSquare -> canBeCapturedEnPassant(opponentPawn, neighbourSquare, lastEvent))
             .map(opponentSquare -> getSquareBackwardTheOpponent(opponentPawn, opponentSquare))
@@ -53,7 +53,7 @@ public class EnPassantMovingStrategy extends AbstractMovingStrategy {
 
     private boolean canBeCapturedEnPassant(Piece opponentPawn, Square neighbourSquare, BoardEvent lastEvent) {
         return neighbourSquare
-            .neighbour(Direction.BACKWARD, opponentPawn.orientation, 2)
+            .findNeighbour(Direction.BACKWARD, opponentPawn.orientation, 2)
             .map(from -> new PieceMoved(
                 opponentPawn,
                 from,
@@ -64,7 +64,7 @@ public class EnPassantMovingStrategy extends AbstractMovingStrategy {
     }
 
     private Optional<Square> getSquareBackwardTheOpponent(Piece opponentPawn, Square location) {
-        return location.neighbour(Direction.BACKWARD, opponentPawn.orientation());
+        return location.findNeighbour(Direction.BACKWARD, opponentPawn.orientation());
     }
 
 }

@@ -1,12 +1,23 @@
-package dev.ecattez.shahmat.board;
+package dev.ecattez.shahmat.game;
 
-import dev.ecattez.shahmat.board.move.Capture;
-import dev.ecattez.shahmat.board.move.EnPassant;
+import dev.ecattez.shahmat.board.Board;
+import dev.ecattez.shahmat.board.Piece;
+import dev.ecattez.shahmat.board.PieceBox;
+import dev.ecattez.shahmat.board.PieceColorVisitor;
+import dev.ecattez.shahmat.board.PieceType;
+import dev.ecattez.shahmat.board.PieceTypeVisitor;
+import dev.ecattez.shahmat.board.Square;
 import dev.ecattez.shahmat.board.move.Movement;
-import dev.ecattez.shahmat.board.move.MovementVisitor;
+import dev.ecattez.shahmat.board.move.MovingRules;
 import dev.ecattez.shahmat.board.move.MovingStrategy;
-import dev.ecattez.shahmat.board.move.MoveOnVacant;
 import dev.ecattez.shahmat.board.pawn.PawnPromotionAllowedPieces;
+import dev.ecattez.shahmat.board.violation.ImpossibleToMove;
+import dev.ecattez.shahmat.board.violation.InvalidMove;
+import dev.ecattez.shahmat.board.violation.NoPieceOnSquare;
+import dev.ecattez.shahmat.board.violation.PromotionRefused;
+import dev.ecattez.shahmat.board.violation.RulesViolation;
+import dev.ecattez.shahmat.board.violation.WrongPieceSelected;
+import dev.ecattez.shahmat.event.MovementToEventVisitor;
 import dev.ecattez.shahmat.event.PromotionProposed;
 import dev.ecattez.shahmat.board.pawn.PawnPromotionRankVisitor;
 import dev.ecattez.shahmat.command.Move;
@@ -25,15 +36,13 @@ import java.util.stream.Collectors;
 
 public class ChessGame {
 
-    private static final PieceFactory PIECE_FACTORY = new PieceBox(); // fixme: change it
-
     private static final PieceTypeVisitor<MovingStrategy> MOVING_RULES = new MovingRules();
 
     private static final PieceTypeVisitor<Boolean> PIECES_THAT_CAN_PROMOTE = new PawnPromotionAllowedPieces();
 
     private static final PieceColorVisitor<Integer> PROMOTION_RANKS = new PawnPromotionRankVisitor();
 
-    private static final EventMovementVisitor EVENTS_FROM_MOVEMENT = new EventMovementVisitor();
+    private static final MovementToEventVisitor EVENTS_FROM_MOVEMENT = new MovementToEventVisitor();
 
     public static List<BoardEvent> move(
         List<BoardEvent> history,
@@ -52,11 +61,11 @@ public class ChessGame {
         }
 
         Piece pieceToMove = board
-            .getPiece(from)
+            .findPiece(from)
             .filter(command.piece::equals)
             .orElseThrow(() -> new WrongPieceSelected(from));
 
-        List<BoardEvent> events = getMovement(pieceToMove, from, to, board, history)
+        List<BoardEvent> events = findMovement(pieceToMove, from, to, board, history)
             .stream()
             .map(move -> move.accept(EVENTS_FROM_MOVEMENT))
             .flatMap(Collection::stream)
@@ -87,7 +96,7 @@ public class ChessGame {
 
         Square location = command.location;
         Piece pieceToBePromoted = replay(history)
-            .getPiece(location)
+            .findPiece(location)
             .orElseThrow(() -> new NoPieceOnSquare(location));
 
         if (!canBePromoted(pieceToBePromoted, location)) {
@@ -97,7 +106,7 @@ public class ChessGame {
         return Collections.singletonList(
             new PawnPromoted(
                 location,
-                PIECE_FACTORY.createPiece(typeOfPromotion, pieceToBePromoted.color)
+                PieceBox.getInstance().createPiece(typeOfPromotion, pieceToBePromoted.color)
             )
         );
     }
@@ -121,9 +130,9 @@ public class ChessGame {
         return board;
     };
 
-    private static Optional<Movement> getMovement(Piece pieceOnBoard, Square from, Square to, Board board, List<BoardEvent> history) {
+    private static Optional<Movement> findMovement(Piece pieceOnBoard, Square from, Square to, Board board, List<BoardEvent> history) {
         return pieceOnBoard.type.accept(MOVING_RULES)
-            .getMovement(pieceOnBoard, from, to, board, history);
+            .findMovement(history, board, pieceOnBoard, from, to);
     }
 
     private static boolean canPromote(PieceType typeOfPromotion) {
@@ -134,55 +143,6 @@ public class ChessGame {
         return pieceOnBoard.isOfType(PieceType.PAWN)
             && pieceOnBoard.color.accept(PROMOTION_RANKS)
                 .equals(location.rank.value);
-    }
-
-    private static class EventMovementVisitor implements MovementVisitor<List<BoardEvent>> {
-
-        @Override
-        public List<BoardEvent> visit(MoveOnVacant move) {
-            return List.of(
-                new PieceMoved(
-                    move.piece,
-                    move.from,
-                    move.to
-                )
-            );
-        }
-
-        @Override
-        public List<BoardEvent> visit(Capture move) {
-            return List.of(
-                new PieceMoved(
-                    move.piece,
-                    move.from,
-                    move.to
-                ),
-                new PieceCaptured(
-                    move.captured,
-                    move.piece,
-                    move.to
-                )
-            );
-        }
-
-        @Override
-        public List<BoardEvent> visit(EnPassant move) {
-            return List.of(
-                new PieceMoved(
-                    move.piece,
-                    move.from,
-                    move.to
-                ),
-                new PieceCaptured(
-                    move.captured,
-                    move.piece,
-                    move.to
-                        .neighbour(Direction.FORWARD, move.captured.orientation())
-                        .orElseThrow(OutsideSquare::new)
-                )
-            );
-        }
-
     }
 
 }
