@@ -1,14 +1,14 @@
 package dev.ecattez.shahmat.board.pawn;
 
-import dev.ecattez.shahmat.board.move.AbstractMovingStrategy;
 import dev.ecattez.shahmat.board.Board;
 import dev.ecattez.shahmat.board.Direction;
 import dev.ecattez.shahmat.board.Orientation;
 import dev.ecattez.shahmat.board.Piece;
 import dev.ecattez.shahmat.board.Square;
+import dev.ecattez.shahmat.board.move.AbstractMovingStrategy;
 import dev.ecattez.shahmat.board.move.Capture;
-import dev.ecattez.shahmat.board.move.Movement;
 import dev.ecattez.shahmat.board.move.MoveOnVacant;
+import dev.ecattez.shahmat.board.move.Movement;
 import dev.ecattez.shahmat.event.BoardEvent;
 
 import java.util.ArrayList;
