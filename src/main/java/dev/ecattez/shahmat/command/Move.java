@@ -15,4 +15,12 @@ public class Move {
         this.to = to;
     }
 
+    @Override
+    public String toString() {
+        return "Move{" +
+            "piece=" + piece +
+            ", from=" + from +
+            ", to=" + to +
+            '}';
+    }
 }

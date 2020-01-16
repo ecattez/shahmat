@@ -12,4 +12,12 @@ public class Promote {
         this.location = location;
         this.typeOfPromotion = typeOfPromotion;
     }
+
+    @Override
+    public String toString() {
+        return "Promote{" +
+            "location=" + location +
+            ", typeOfPromotion=" + typeOfPromotion +
+            '}';
+    }
 }
