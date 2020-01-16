@@ -1,8 +1,8 @@
 package dev.ecattez.shahmat.board.violation;
 
-public class OutsideSquare extends InvalidPosition {
+public class SquareOutsideOfBoard extends InvalidPosition {
 
-    public OutsideSquare() {
+    public SquareOutsideOfBoard() {
         super("Square is outside of the board");
     }
 

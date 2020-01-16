@@ -3,8 +3,8 @@ package dev.ecattez.shahmat.board;
 public class BoardStringFormatter {
 
     public String format(Board board) {
-        Square.File file = Square.File.FIRST;
-        Square.Rank rank = Square.Rank.LAST;
+        Square.File file = Square.File.first();
+        Square.Rank rank = Square.Rank.last();
 
         Square current = new Square(file, rank);
         StringBuilder builder = new StringBuilder(rank.toString())
@@ -17,7 +17,7 @@ public class BoardStringFormatter {
                 current = new Square(file, rank);
                 builder.append(toString(board, current));
             }
-            file = Square.File.FIRST;
+            file = Square.File.first();
 
             builder.append("\n");
             if (rank.hasPrevious()) {
@@ -32,7 +32,7 @@ public class BoardStringFormatter {
             builder.append(toString(board, current));
         }
         builder.append(" |");
-        file = Square.File.FIRST;
+        file = Square.File.first();
         do {
             builder
                 .append(" ")

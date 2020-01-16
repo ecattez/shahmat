@@ -1,7 +1,11 @@
 package dev.ecattez.shahmat.board;
 
+import dev.ecattez.shahmat.board.bishop.Bishop;
+import dev.ecattez.shahmat.board.king.King;
+import dev.ecattez.shahmat.board.knight.Knight;
 import dev.ecattez.shahmat.board.pawn.Pawn;
-import dev.ecattez.shahmat.board.violation.RuleNotImplemented;
+import dev.ecattez.shahmat.board.queen.Queen;
+import dev.ecattez.shahmat.board.rook.Rook;
 
 public class PieceBox implements PieceFactory {
 
@@ -26,27 +30,27 @@ public class PieceBox implements PieceFactory {
 
             @Override
             public Piece visitRook() {
-                return new DummyPiece(type, color);
+                return new Rook(color);
             }
 
             @Override
             public Piece visitBishop() {
-                return new DummyPiece(type, color);
+                return new Bishop(color);
             }
 
             @Override
             public Piece visitKnight() {
-                return new DummyPiece(type, color);
+                return new Knight(color);
             }
 
             @Override
             public Piece visitQueen() {
-                return new DummyPiece(type, color);
+                return new Queen(color);
             }
 
             @Override
             public Piece visitKing() {
-                return new DummyPiece(type, color);
+                return new King(color);
             }
         });
     }

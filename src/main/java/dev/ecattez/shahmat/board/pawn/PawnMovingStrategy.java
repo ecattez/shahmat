@@ -82,7 +82,7 @@ public class PawnMovingStrategy extends AbstractMovingStrategy {
     }
 
     private boolean isOnItsStartingRank(Piece piece, Square location) {
-        return piece.color.accept(STARTING_RANK_VISITOR) == location.rank.value;
+        return piece.color.accept(STARTING_RANK_VISITOR).equals(location.rank);
     }
 
     private int getNumberOfMoves(Piece piece, Square location) {

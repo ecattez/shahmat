@@ -1,11 +1,11 @@
 package dev.ecattez.shahmat.domain.board.pawn;
 
 import com.tngtech.jgiven.Stage;
+import com.tngtech.jgiven.annotation.AfterScenario;
 import com.tngtech.jgiven.annotation.BeforeStage;
 import dev.ecattez.shahmat.board.violation.ImpossibleToMove;
 import dev.ecattez.shahmat.game.ChessGame;
 import dev.ecattez.shahmat.board.Direction;
-import dev.ecattez.shahmat.board.violation.OutsideSquare;
 import dev.ecattez.shahmat.board.Piece;
 import dev.ecattez.shahmat.board.PieceBox;
 import dev.ecattez.shahmat.board.PieceColor;
@@ -19,20 +19,25 @@ import dev.ecattez.shahmat.event.PieceCaptured;
 import dev.ecattez.shahmat.event.PieceMoved;
 import dev.ecattez.shahmat.event.PiecePositioned;
 import org.assertj.core.api.Assertions;
+import org.mockito.Mockito;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.mockito.Mockito.mock;
 
 public class PawnStage extends Stage<PawnStage> {
 
-    private PieceFactory pieceFactory;
     private Piece pawn;
     private Square from;
     private Square to;
     private Piece opponentPiece;
+
+    private PieceFactory pieceFactory;
     private List<BoardEvent> returnedEvents;
     private List<BoardEvent> history;
     private RulesViolation violation;
@@ -41,6 +46,31 @@ public class PawnStage extends Stage<PawnStage> {
     public void init() {
         this.pieceFactory = PieceBox.getInstance();
         this.history = new LinkedList<>();
+        this.returnedEvents = new LinkedList<>();
+    }
+
+    @AfterScenario
+    public void after() {
+        System.out.println("Before command");
+        System.out.println(
+            ChessGame.replay(
+                history
+            ).toString()
+        );
+        System.out.println();
+
+        System.out.println("After command");
+        System.out.println(
+            ChessGame.replay(
+                Stream.of(history, returnedEvents)
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toList())
+            ).toString()
+        );
+        if (violation != null) {
+            System.out.println(violation.getMessage());
+        }
+        System.out.println();
     }
 
     public PawnStage a_$_pawn_in_$(String color, String from) {
@@ -64,9 +94,13 @@ public class PawnStage extends Stage<PawnStage> {
     }
 
     public PawnStage $_is_not_vacant(String location) {
+        Piece anotherPiece = mock(Piece.class);
+        Mockito.when(anotherPiece.toString())
+            .thenReturn("X");
+
         history.add(
             new PiecePositioned(
-                mock(Piece.class),
+                anotherPiece,
                 new Square(location)
             )
         );
@@ -89,7 +123,7 @@ public class PawnStage extends Stage<PawnStage> {
     }
 
     public PawnStage the_pawn_is_moved_forward() {
-        this.to = from.findNeighbour(Direction.FORWARD, pawn.orientation()).orElseThrow(OutsideSquare::new);
+        this.to = from.getNeighbour(Direction.FORWARD, pawn.orientation());
         try {
             this.returnedEvents = ChessGame.move(
                 Collections.unmodifiableList(history),
@@ -106,9 +140,11 @@ public class PawnStage extends Stage<PawnStage> {
     }
 
     public PawnStage the_pawn_is_moved_forward_two_squares() {
-        this.to = from
-            .findNeighbour(Direction.FORWARD, pawn.orientation(), 2)
-            .orElseThrow(OutsideSquare::new);
+        this.to = from.getNeighbour(
+            Direction.FORWARD,
+            pawn.orientation(),
+            2
+        );
         try {
             this.returnedEvents = ChessGame.move(
                 Collections.unmodifiableList(history),

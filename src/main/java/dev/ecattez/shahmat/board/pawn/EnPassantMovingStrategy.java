@@ -28,7 +28,7 @@ public class EnPassantMovingStrategy extends AbstractMovingStrategy {
     private static final EnPassantRankVisitor EN_PASSANT_VISITOR = new EnPassantRankVisitor();
 
     private boolean isOnEnPassantRank(Piece piece, Square location) {
-        return piece.color.accept(EN_PASSANT_VISITOR) == location.rank.value;
+        return piece.color.accept(EN_PASSANT_VISITOR).equals(location.rank);
     }
 
     @Override
@@ -45,7 +45,7 @@ public class EnPassantMovingStrategy extends AbstractMovingStrategy {
             .map(direction -> from.findNeighbour(direction, currentOrientation))
             .flatMap(Optional::stream)
             .filter(neighbourSquare -> canBeCapturedEnPassant(opponentPawn, neighbourSquare, lastEvent))
-            .map(opponentSquare -> getSquareBackwardTheOpponent(opponentPawn, opponentSquare))
+            .map(opponentSquare -> findSquareBackwardTheOpponent(opponentPawn, opponentSquare))
             .flatMap(Optional::stream)
             .map(selectedSquare -> new EnPassant(piece, from, selectedSquare, opponentPawn))
             .collect(Collectors.toList());
@@ -63,7 +63,7 @@ public class EnPassantMovingStrategy extends AbstractMovingStrategy {
             .isPresent();
     }
 
-    private Optional<Square> getSquareBackwardTheOpponent(Piece opponentPawn, Square location) {
+    private Optional<Square> findSquareBackwardTheOpponent(Piece opponentPawn, Square location) {
         return location.findNeighbour(Direction.BACKWARD, opponentPawn.orientation());
     }
 

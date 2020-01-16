@@ -1,10 +1,11 @@
 package dev.ecattez.shahmat.domain.board.pawn;
 
 import com.tngtech.jgiven.Stage;
+import com.tngtech.jgiven.annotation.AfterScenario;
 import com.tngtech.jgiven.annotation.BeforeStage;
+import dev.ecattez.shahmat.board.violation.PieceNotImplemented;
 import dev.ecattez.shahmat.game.ChessGame;
 import dev.ecattez.shahmat.board.Direction;
-import dev.ecattez.shahmat.board.violation.OutsideSquare;
 import dev.ecattez.shahmat.board.Piece;
 import dev.ecattez.shahmat.board.PieceBox;
 import dev.ecattez.shahmat.board.PieceColor;
@@ -21,18 +22,22 @@ import dev.ecattez.shahmat.event.PiecePositioned;
 import dev.ecattez.shahmat.event.PromotionProposed;
 import org.assertj.core.api.Assertions;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.mockito.Mockito.mock;
 
 public class PromotionStage extends Stage<PromotionStage> {
 
-    private PieceFactory pieceFactory;
     private Piece pawn;
     private Square from;
     private Square to;
+
+    private PieceFactory pieceFactory;
     private List<BoardEvent> returnedEvents;
     private List<BoardEvent> history;
     private RulesViolation violation;
@@ -41,6 +46,30 @@ public class PromotionStage extends Stage<PromotionStage> {
     public void init() {
         this.pieceFactory = PieceBox.getInstance();
         this.history = new LinkedList<>();
+        this.returnedEvents = new LinkedList<>();
+    }
+
+    @AfterScenario
+    public void after() {
+        System.out.println("Before command");
+        System.out.println(
+            ChessGame.replay(
+                history
+            ).toString()
+        );
+        System.out.println();
+
+        System.out.println("After command");
+        System.out.println(
+            ChessGame.replay(
+                Stream.of(history, returnedEvents)
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toList())
+            ).toString()
+        );
+        if (violation != null) {
+            System.out.println(violation.getMessage());
+        }
     }
 
     public PromotionStage a_$_pawn_in_$(String color, String from) {
@@ -63,7 +92,10 @@ public class PromotionStage extends Stage<PromotionStage> {
     }
 
     public PromotionStage the_pawn_is_moved_forward() {
-        this.to = from.findNeighbour(Direction.FORWARD, pawn.orientation()).orElseThrow(OutsideSquare::new);
+        this.to = from.getNeighbour(
+            Direction.FORWARD,
+            pawn.orientation()
+        );
         try {
             this.returnedEvents = ChessGame.move(
                 Collections.unmodifiableList(history),

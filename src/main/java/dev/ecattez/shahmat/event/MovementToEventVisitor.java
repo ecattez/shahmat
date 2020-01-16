@@ -1,7 +1,6 @@
 package dev.ecattez.shahmat.event;
 
 import dev.ecattez.shahmat.board.Direction;
-import dev.ecattez.shahmat.board.violation.OutsideSquare;
 import dev.ecattez.shahmat.board.move.Capture;
 import dev.ecattez.shahmat.board.move.EnPassant;
 import dev.ecattez.shahmat.board.move.MoveOnVacant;
@@ -50,8 +49,7 @@ public class MovementToEventVisitor implements MovementVisitor<List<BoardEvent>>
                 move.captured,
                 move.piece,
                 move.to
-                    .findNeighbour(Direction.FORWARD, move.captured.orientation())
-                    .orElseThrow(OutsideSquare::new)
+                    .getNeighbour(Direction.FORWARD, move.captured.orientation())
             )
         );
     }

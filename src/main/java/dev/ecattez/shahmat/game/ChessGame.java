@@ -40,7 +40,7 @@ public class ChessGame {
 
     private static final PieceTypeVisitor<Boolean> PIECES_THAT_CAN_PROMOTE = new PawnPromotionAllowedPieces();
 
-    private static final PieceColorVisitor<Integer> PROMOTION_RANKS = new PawnPromotionRankVisitor();
+    private static final PieceColorVisitor<Square.Rank> PROMOTION_RANKS = new PawnPromotionRankVisitor();
 
     private static final MovementToEventVisitor EVENTS_FROM_MOVEMENT = new MovementToEventVisitor();
 
@@ -111,7 +111,7 @@ public class ChessGame {
         );
     }
 
-    private static Board replay(List<BoardEvent> history) {
+    public static Board replay(List<BoardEvent> history) {
         Board board = new Board();
         for (BoardEvent past: history) {
             // todo: visitor pattern + appliers ?
@@ -142,7 +142,7 @@ public class ChessGame {
     private static boolean canBePromoted(Piece pieceOnBoard, Square location) {
         return pieceOnBoard.isOfType(PieceType.PAWN)
             && pieceOnBoard.color.accept(PROMOTION_RANKS)
-                .equals(location.rank.value);
+                .equals(location.rank);
     }
 
 }

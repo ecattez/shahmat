@@ -1,11 +1,11 @@
 package dev.ecattez.shahmat.domain.board.pawn;
 
 import com.tngtech.jgiven.Stage;
+import com.tngtech.jgiven.annotation.AfterScenario;
 import com.tngtech.jgiven.annotation.BeforeStage;
 import dev.ecattez.shahmat.game.ChessGame;
 import dev.ecattez.shahmat.board.Direction;
 import dev.ecattez.shahmat.board.violation.ImpossibleToMove;
-import dev.ecattez.shahmat.board.violation.OutsideSquare;
 import dev.ecattez.shahmat.board.Piece;
 import dev.ecattez.shahmat.board.PieceBox;
 import dev.ecattez.shahmat.board.PieceColor;
@@ -20,20 +20,24 @@ import dev.ecattez.shahmat.event.PieceMoved;
 import dev.ecattez.shahmat.event.PiecePositioned;
 import org.assertj.core.api.Assertions;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.mockito.Mockito.mock;
 
 public class EnPassantStage extends Stage<EnPassantStage> {
 
-    private PieceFactory pieceFactory;
     private Piece pawn;
     private Square from;
     private Square to;
     private Piece opponentPawn;
     private Square opponentLocation;
+
+    private PieceFactory pieceFactory;
     private List<BoardEvent> returnedEvents;
     private List<BoardEvent> history;
     private RulesViolation violation;
@@ -42,6 +46,31 @@ public class EnPassantStage extends Stage<EnPassantStage> {
     public void init() {
         this.pieceFactory = PieceBox.getInstance();
         this.history = new LinkedList<>();
+        this.returnedEvents = new LinkedList<>();
+    }
+
+    @AfterScenario
+    public void after() {
+        System.out.println("Before command");
+        System.out.println(
+            ChessGame.replay(
+                history
+            ).toString()
+        );
+        System.out.println();
+
+        System.out.println("After command");
+        System.out.println(
+            ChessGame.replay(
+                Stream.of(history, returnedEvents)
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toList())
+            ).toString()
+        );
+        if (violation != null) {
+            System.out.println(violation.getMessage());
+        }
+        System.out.println();
     }
 
     public EnPassantStage a_$_pawn_in_$(String color, String from) {
@@ -65,21 +94,22 @@ public class EnPassantStage extends Stage<EnPassantStage> {
             pawn.color.opposite()
         );
 
-        this.opponentLocation = new Square(new Square.File(opponentFile), from.rank);
+        this.opponentLocation = new Square(
+            Square.File.valueOf(opponentFile),
+            from.rank
+        );
 
         history.add(
             new PieceMoved(
                 opponentPawn,
                 opponentLocation
-                    .findNeighbour(Direction.BACKWARD, opponentPawn.orientation(), 2)
-                    .orElseThrow(OutsideSquare::new),
+                    .getNeighbour(Direction.BACKWARD, opponentPawn.orientation(), 2),
                 opponentLocation
             )
         );
 
         this.to = opponentLocation
-            .findNeighbour(Direction.BACKWARD, opponentPawn.orientation())
-            .orElseThrow(OutsideSquare::new);
+            .getNeighbour(Direction.BACKWARD, opponentPawn.orientation());
 
         return self();
     }
