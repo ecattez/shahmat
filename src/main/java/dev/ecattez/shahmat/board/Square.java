@@ -1,11 +1,9 @@
 package dev.ecattez.shahmat.board;
 
-import dev.ecattez.shahmat.board.violation.InvalidPosition;
-import dev.ecattez.shahmat.board.violation.InvalidRank;
-import dev.ecattez.shahmat.board.violation.InvalidSquare;
 import dev.ecattez.shahmat.board.violation.FileOutsideOfBoard;
-import dev.ecattez.shahmat.board.violation.SquareOutsideOfBoard;
+import dev.ecattez.shahmat.board.violation.InvalidPosition;
 import dev.ecattez.shahmat.board.violation.RankOutsideOfBoard;
+import dev.ecattez.shahmat.board.violation.SquareOutsideOfBoard;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -20,15 +18,15 @@ public class Square {
     public final File file;
     public final Rank rank;
 
-    public Square(String position) throws InvalidSquare {
+    public Square(String position) throws InvalidPosition {
         if (position == null || !position.matches(SQUARE_PATTERN)) {
-            throw new InvalidSquare(position);
+            throw new InvalidPosition(position + " is not a valid square");
         }
         this.file = File.valueOf(position.substring(0, 1).toUpperCase());
         this.rank = Rank.valueOf(Integer.parseInt(position.substring(1, 2)));
     }
 
-    public Square(File file, Rank rank) throws InvalidSquare {
+    public Square(File file, Rank rank) throws InvalidPosition {
         if (file == null) {
             throw new InvalidPosition("File can not be null");
         }
@@ -168,7 +166,7 @@ public class Square {
 
         public final int value;
 
-        Rank(int value) throws InvalidRank {
+        Rank(int value) {
             this.value = value;
         }
 
