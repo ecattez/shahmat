@@ -18,21 +18,25 @@ import dev.ecattez.shahmat.board.violation.NoPieceOnSquare;
 import dev.ecattez.shahmat.board.violation.PromotionRefused;
 import dev.ecattez.shahmat.board.violation.RulesViolation;
 import dev.ecattez.shahmat.board.violation.WrongPieceSelected;
+import dev.ecattez.shahmat.command.InitBoard;
 import dev.ecattez.shahmat.command.Move;
 import dev.ecattez.shahmat.command.Promote;
 import dev.ecattez.shahmat.event.BoardEvent;
+import dev.ecattez.shahmat.event.BoardInitialized;
 import dev.ecattez.shahmat.event.MovementToEventVisitor;
 import dev.ecattez.shahmat.event.PawnPromoted;
 import dev.ecattez.shahmat.event.PieceCaptured;
 import dev.ecattez.shahmat.event.PieceMoved;
 import dev.ecattez.shahmat.event.PiecePositioned;
 import dev.ecattez.shahmat.event.PromotionProposed;
+import dev.ecattez.shahmat.game.init.GameInitialization;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ChessGame {
 
@@ -43,6 +47,28 @@ public class ChessGame {
     private static final PieceColorVisitor<Square.Rank> PROMOTION_RANKS = new PawnPromotionRankVisitor();
 
     private static final MovementToEventVisitor EVENTS_FROM_MOVEMENT = new MovementToEventVisitor();
+
+    private static final GameInitialization GAME_INITIALIZATION = new GameInitialization();
+
+    public static List<BoardEvent> initalizeBoard(
+        List<BoardEvent> history,
+        InitBoard command
+    ) throws BoardAlreadyInitialized {
+        if (replay(history).isUsed()) {
+            throw new BoardAlreadyInitialized();
+        }
+
+        GameType gameType = command.gameType;
+        return Stream.of(
+            gameType.accept(GAME_INITIALIZATION)
+                .init(),
+            List.of(
+                new BoardInitialized(gameType)
+            )
+        )
+        .flatMap(Collection::stream)
+        .collect(Collectors.toList());
+    }
 
     public static List<BoardEvent> move(
         List<BoardEvent> history,
@@ -115,9 +141,7 @@ public class ChessGame {
         Board board = new Board();
         for (BoardEvent past: history) {
             // todo: visitor pattern + appliers ?
-            if (past instanceof PiecePositioned) {
-                board.apply((PiecePositioned) past);
-            } else if (past instanceof PieceMoved) {
+            if (past instanceof PieceMoved) {
                 board.apply((PieceMoved) past);
             } else if (past instanceof PieceCaptured) {
                 board.apply((PieceCaptured) past);
@@ -125,6 +149,10 @@ public class ChessGame {
                 board.apply((PromotionProposed) past);
             } else if (past instanceof PawnPromoted) {
                 board.apply((PawnPromoted) past);
+            } else if (past instanceof PiecePositioned) {
+                board.apply((PiecePositioned) past);
+            } else if (past instanceof BoardInitialized) {
+                board.apply((BoardInitialized) past);
             }
         }
         return board;

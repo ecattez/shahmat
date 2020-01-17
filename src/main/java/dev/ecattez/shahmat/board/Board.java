@@ -1,11 +1,13 @@
 package dev.ecattez.shahmat.board;
 
 import dev.ecattez.shahmat.board.violation.NoPieceOnSquare;
+import dev.ecattez.shahmat.event.BoardInitialized;
 import dev.ecattez.shahmat.event.PawnPromoted;
 import dev.ecattez.shahmat.event.PieceCaptured;
 import dev.ecattez.shahmat.event.PieceMoved;
 import dev.ecattez.shahmat.event.PiecePositioned;
 import dev.ecattez.shahmat.event.PromotionProposed;
+import dev.ecattez.shahmat.game.GameType;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,6 +17,8 @@ import java.util.Optional;
 public class Board {
 
     private final Map<Square, Piece> boardState;
+    private GameType gameType;
+    private boolean used;
 
     public Board(Map<Square, Piece> boardState) {
         this.boardState = boardState;
@@ -37,6 +41,18 @@ public class Board {
         return boardState.get(location) == null;
     }
 
+    public boolean isEmpty() {
+        return boardState.isEmpty();
+    }
+
+    public boolean isUsed() {
+        return used;
+    }
+
+    public GameType getGameType() {
+        return gameType;
+    }
+
     public boolean isOpponentOf(Square neighbour, Piece piece) {
         return findPiece(neighbour)
             .filter(piece::isOpponent)
@@ -45,6 +61,11 @@ public class Board {
 
     public void apply(PiecePositioned event) {
         boardState.put(event.position, event.piece);
+    }
+
+    public void apply(BoardInitialized event) {
+        this.used = true;
+        this.gameType = event.gameType;
     }
 
     public void apply(PieceCaptured event) {
