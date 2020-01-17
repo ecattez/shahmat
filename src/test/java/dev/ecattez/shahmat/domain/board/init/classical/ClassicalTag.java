@@ -1,10 +1,10 @@
-package dev.ecattez.shahmat.domain.board.queen;
+package dev.ecattez.shahmat.domain.board.init.classical;
 
 import com.tngtech.jgiven.annotation.IsTag;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
-@IsTag(name = "Queen")
+@IsTag(name = "Classical")
 @Retention( RetentionPolicy.RUNTIME )
-public @interface QueenTag {}
+public @interface ClassicalTag {}
