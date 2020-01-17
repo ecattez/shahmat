@@ -52,6 +52,16 @@ The rooks are the most simple-moving chess pieces on the board. Their movements 
 
 ![Rook moves](https://cdn11.bigcommerce.com/s-dlmdd/content/rook-moves2.jpg)
 
+## Bishop
+
+The bishop chess piece is stuck moving in diagonals. Each player starts out with two bishop pieces, each one residing on its own color of square. Between both pieces, you can cover the entire board, but one piece can only cover one half of the board, only the colors of squares it started the game on.
+
+- It can move in any direction diagonally, so long as it is not obstructed by another piece.
+- It cannot move past any piece that is obstructing its path.
+- It can take any other piece on the board that is within its bounds of movement.
+
+![Bishop moves](https://cdn11.bigcommerce.com/s-dlmdd/content/bishop-moves.jpg)
+
 ## References
 
 [http://www.chesscoachonline.com/chess-articles/chess-rules](http://www.chesscoachonline.com/chess-articles/chess-rules)
