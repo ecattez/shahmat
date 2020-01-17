@@ -12,7 +12,7 @@ import java.util.List;
 public class ClassicalBoardInitialization implements BoardInitialization {
 
     @Override
-    public List<BoardEvent> initialize() {
+    public List<BoardEvent> init() {
         return List.of(
             position(PieceColor.WHITE, PieceType.ROOK, "A1"),
             position(PieceColor.WHITE, PieceType.KNIGHT, "B1"),

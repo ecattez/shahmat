@@ -6,6 +6,6 @@ import java.util.List;
 
 public interface BoardInitialization {
 
-    List<BoardEvent> initialize();
+    List<BoardEvent> init();
 
 }

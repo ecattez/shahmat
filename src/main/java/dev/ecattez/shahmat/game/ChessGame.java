@@ -57,11 +57,11 @@ public class ChessGame {
         if (replay(history).isUsed()) {
             throw new BoardAlreadyInitialized();
         }
-        GameType gameType = command.gameType;
 
+        GameType gameType = command.gameType;
         return Stream.of(
             gameType.accept(GAME_INITIALIZATION)
-                .initialize(),
+                .init(),
             List.of(
                 new BoardInitialized(gameType)
             )
