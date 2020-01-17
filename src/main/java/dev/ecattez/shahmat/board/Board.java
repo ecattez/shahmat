@@ -3,9 +3,9 @@ package dev.ecattez.shahmat.board;
 import dev.ecattez.shahmat.board.violation.NoPieceOnSquare;
 import dev.ecattez.shahmat.event.PawnPromoted;
 import dev.ecattez.shahmat.event.PieceCaptured;
+import dev.ecattez.shahmat.event.PieceMoved;
 import dev.ecattez.shahmat.event.PiecePositioned;
 import dev.ecattez.shahmat.event.PromotionProposed;
-import dev.ecattez.shahmat.event.PieceMoved;
 
 import java.util.HashMap;
 import java.util.Map;

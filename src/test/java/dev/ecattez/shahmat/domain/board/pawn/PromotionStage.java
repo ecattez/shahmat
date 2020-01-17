@@ -3,23 +3,22 @@ package dev.ecattez.shahmat.domain.board.pawn;
 import com.tngtech.jgiven.Stage;
 import com.tngtech.jgiven.annotation.AfterScenario;
 import com.tngtech.jgiven.annotation.BeforeStage;
-import dev.ecattez.shahmat.board.violation.PieceNotImplemented;
-import dev.ecattez.shahmat.game.ChessGame;
 import dev.ecattez.shahmat.board.Direction;
 import dev.ecattez.shahmat.board.Piece;
 import dev.ecattez.shahmat.board.PieceBox;
 import dev.ecattez.shahmat.board.PieceColor;
 import dev.ecattez.shahmat.board.PieceFactory;
 import dev.ecattez.shahmat.board.PieceType;
+import dev.ecattez.shahmat.board.Square;
 import dev.ecattez.shahmat.board.violation.PromotionRefused;
 import dev.ecattez.shahmat.board.violation.RulesViolation;
-import dev.ecattez.shahmat.board.Square;
 import dev.ecattez.shahmat.command.Move;
 import dev.ecattez.shahmat.command.Promote;
 import dev.ecattez.shahmat.event.BoardEvent;
 import dev.ecattez.shahmat.event.PawnPromoted;
 import dev.ecattez.shahmat.event.PiecePositioned;
 import dev.ecattez.shahmat.event.PromotionProposed;
+import dev.ecattez.shahmat.game.ChessGame;
 import org.assertj.core.api.Assertions;
 
 import java.util.Collection;
@@ -28,8 +27,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static org.mockito.Mockito.mock;
 
 public class PromotionStage extends Stage<PromotionStage> {
 

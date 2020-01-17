@@ -1,6 +1,5 @@
 package dev.ecattez.shahmat.domain.board;
 
-import com.tngtech.jgiven.Stage;
 import com.tngtech.jgiven.annotation.AfterScenario;
 import com.tngtech.jgiven.annotation.BeforeStage;
 import dev.ecattez.shahmat.board.PieceBox;

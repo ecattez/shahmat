@@ -42,6 +42,16 @@ The new piece replaces the pawn within the same move. The choice of new piece is
 
 Pawn promotion, or the threat of it, often decides the result in an endgame. Since the queen is the most powerful piece, the vast majority of promotions are to a queen. Promotion to a queen is also called queening; promotion to any other piece is referred to as underpromotion.
 
+## Rook
+
+The rooks are the most simple-moving chess pieces on the board. Their movements are only straight, moving forward, backward or side to side. At any point in the game, the piece can move in any direction that is straight ahead, behind or to the side. Here are a few things to know about how the Rook chess piece moves:
+
+- It can move forward, backward, left or right at any time;
+- It can move anywhere from 1 to 7 squares in any direction, so long as it is not obstructed by any other piece;
+- It can capture an opponent piece that obstruct its way.
+
+![Rook moves](https://cdn11.bigcommerce.com/s-dlmdd/content/rook-moves2.jpg)
+
 ## References
 
 [http://www.chesscoachonline.com/chess-articles/chess-rules](http://www.chesscoachonline.com/chess-articles/chess-rules)

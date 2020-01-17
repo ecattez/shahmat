@@ -1,8 +1,8 @@
 package dev.ecattez.shahmat.board.move;
 
 import dev.ecattez.shahmat.board.PieceTypeVisitor;
-import dev.ecattez.shahmat.board.move.MovingStrategy;
 import dev.ecattez.shahmat.board.pawn.PawnMovingStrategy;
+import dev.ecattez.shahmat.board.rook.RookMovingStrategy;
 import dev.ecattez.shahmat.board.violation.RuleNotImplemented;
 
 public class MovingRules implements PieceTypeVisitor<MovingStrategy> {
@@ -14,7 +14,7 @@ public class MovingRules implements PieceTypeVisitor<MovingStrategy> {
 
     @Override
     public MovingStrategy visitRook() {
-        throw new RuleNotImplemented();
+        return new RookMovingStrategy();
     }
 
     @Override
