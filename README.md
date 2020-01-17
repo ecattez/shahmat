@@ -62,6 +62,14 @@ The bishop chess piece is stuck moving in diagonals. Each player starts out with
 
 ![Bishop moves](https://cdn11.bigcommerce.com/s-dlmdd/content/bishop-moves.jpg)
 
+## Queen
+
+The queen chess piece is like a combination of the Rook and Bishop chess pieces.
+
+- It queen can move in any direction on a straight or diagonal path.
+- It cannot move past any piece that is obstructing its path.
+- It can be used to capture any of your opponent's pieces on the board.
+
 ## References
 
 [http://www.chesscoachonline.com/chess-articles/chess-rules](http://www.chesscoachonline.com/chess-articles/chess-rules)
