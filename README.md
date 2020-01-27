@@ -74,3 +74,4 @@ The queen chess piece is like a combination of the Rook and Bishop chess pieces.
 
 [http://www.chesscoachonline.com/chess-articles/chess-rules](http://www.chesscoachonline.com/chess-articles/chess-rules)
 [https://www.wholesalechess.com/pages/new-to-chess/pieces.html](https://www.wholesalechess.com/pages/new-to-chess/pieces.html)
+[https://en.wikipedia.org/wiki/Algebraic_notation_(chess)](https://en.wikipedia.org/wiki/Algebraic_notation_(chess))

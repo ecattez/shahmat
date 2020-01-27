@@ -57,7 +57,8 @@ public class ClassicalSpec {
             .and().a_$_$_is_in_$("BLACK", "PAWN", "E7")
             .and().a_$_$_is_in_$("BLACK", "PAWN", "F7")
             .and().a_$_$_is_in_$("BLACK", "PAWN", "G7")
-            .and().a_$_$_is_in_$("BLACK", "PAWN", "H7");
+            .and().a_$_$_is_in_$("BLACK", "PAWN", "H7")
+            .and().the_board_is_ready_to_play_with();
     }
 
     @Test
