@@ -4,7 +4,6 @@ import dev.ecattez.shahmat.domain.board.Board;
 import dev.ecattez.shahmat.domain.board.piece.Piece;
 import dev.ecattez.shahmat.domain.board.piece.PieceType;
 import dev.ecattez.shahmat.domain.board.piece.move.Movement;
-import dev.ecattez.shahmat.domain.board.piece.move.MovingRules;
 import dev.ecattez.shahmat.domain.board.square.Square;
 import dev.ecattez.shahmat.domain.board.violation.RuleNotImplemented;
 import dev.ecattez.shahmat.domain.board.violation.RulesViolation;
@@ -169,7 +168,7 @@ public class HalBoardResource {
     }
 
     @PostMapping(path = "{boardId}/squares/{where}", produces = "application/prs.hal-forms+json")
-    public HalBoard move(@PathVariable String boardId, @PathVariable String where, @Valid  @RequestBody MovePayload payload) {
+    public HalBoard move(@PathVariable String boardId, @PathVariable String where, @Valid @RequestBody MovePayload payload) {
         ChessGameId chessGameId = ChessGameId.fromString(boardId);
         List<ChessEvent> history = eventStore.history(chessGameId);
 
@@ -206,11 +205,16 @@ public class HalBoardResource {
             .id(
                 chessGameId.value
             )
+            .turnOf(
+                board
+                    .turnOf()
+                    .toString()
+            )
             .squares(
                 Stream.of(
                     getOccupiedSquares(board)
                         .stream()
-                        .map(this::toHalSquare)
+                        .map(square -> this.toHalSquare(board, square, board.getPiece(square)))
                         .collect(Collectors.toList()),
                     getVacantSquares(board)
                         .stream()
@@ -247,28 +251,32 @@ public class HalBoardResource {
     }
 
     private HalSquare toHalSquare(Board board, Square occupied, Piece piece) {
-        List<String> availableMoves;
-        try {
-            availableMoves = piece.type().accept(MovingRules.getInstance())
-                .getAvailableMovements(board, piece, occupied)
-                .stream()
-                .map(Movement::to)
-                .map(Square::toString)
-                .collect(Collectors.toList());
-        } catch (RuleNotImplemented e) {
-            availableMoves = new LinkedList<>();
-        }
-
         return new HalSquare(
             occupied.toString(),
             new HalPiece(
                 piece.type().toString(),
                 piece.color().toString(),
                 piece.toString(),
-                availableMoves,
+                toAvailableMoves(board, occupied, piece),
                 board.isPromotingIn(occupied)
             )
         );
+    }
+
+    private List<String> toAvailableMoves(Board board, Square occupied, Piece piece) {
+        if (!BoardDecision.isOwnedByCurrentPlayer(board, piece)) {
+            return Collections.emptyList();
+        }
+
+        try {
+            return BoardDecision.getMovements(board, occupied, piece)
+                .stream()
+                .map(Movement::to)
+                .map(Square::toString)
+                .collect(Collectors.toList());
+        } catch (RuleNotImplemented e) {
+            return new LinkedList<>();
+        }
     }
 
     public static Link getBoardLink(LinkRelation rel, String boardId) {

@@ -19,6 +19,7 @@ import dev.ecattez.shahmat.domain.event.ChessEvent;
 import dev.ecattez.shahmat.domain.event.PieceCapturedEnPassant;
 import dev.ecattez.shahmat.domain.event.PieceMoved;
 import dev.ecattez.shahmat.domain.event.PiecePositioned;
+import dev.ecattez.shahmat.domain.event.TurnChanged;
 import dev.ecattez.shahmat.domain.game.BoardDecision;
 import dev.ecattez.shahmat.domain.game.ChessGame;
 import org.assertj.core.api.Assertions;
@@ -85,10 +86,15 @@ public class EnPassantStage extends Stage<EnPassantStage> {
             PieceType.PAWN,
             PieceColor.valueOf(color)
         );
-        this.history.add(
-            new PiecePositioned(
-                pawn,
-                this.from
+        this.history.addAll(
+            List.of(
+                new PiecePositioned(
+                    pawn,
+                    this.from
+                ),
+                new TurnChanged(
+                    pawn.color()
+                )
             )
         );
         return self();
