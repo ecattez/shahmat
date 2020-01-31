@@ -18,6 +18,7 @@ import dev.ecattez.shahmat.domain.event.ChessEvent;
 import dev.ecattez.shahmat.domain.event.PieceCaptured;
 import dev.ecattez.shahmat.domain.event.PieceMoved;
 import dev.ecattez.shahmat.domain.event.PiecePositioned;
+import dev.ecattez.shahmat.domain.event.TurnChanged;
 import dev.ecattez.shahmat.domain.game.BoardDecision;
 import dev.ecattez.shahmat.domain.game.ChessGame;
 import org.assertj.core.api.Assertions;
@@ -85,10 +86,15 @@ public class BishopStage extends Stage<BishopStage> {
             PieceType.BISHOP,
             PieceColor.valueOf(color)
         );
-        this.history.add(
-            new PiecePositioned(
-                bishop,
-                this.from
+        this.history.addAll(
+            List.of(
+                new PiecePositioned(
+                    bishop,
+                    this.from
+                ),
+                new TurnChanged(
+                    bishop.color()
+                )
             )
         );
         return self();

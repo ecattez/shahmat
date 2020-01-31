@@ -83,10 +83,16 @@ public class HalBoard {
     public static class Builder {
 
         private String id;
+        private String turnOf;
         private List<HalSquare> squares;
 
         public Builder id(String id) {
             this.id = id;
+            return this;
+        }
+
+        public Builder turnOf(String turnOf) {
+            this.turnOf = turnOf;
             return this;
         }
 
@@ -101,7 +107,7 @@ public class HalBoard {
                 squares,
                 Collections.emptyList(),
                 Collections.emptyList(),
-                "WHITE",
+                turnOf,
                 null
             );
         }

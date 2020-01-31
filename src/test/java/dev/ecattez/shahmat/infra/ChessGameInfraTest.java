@@ -1,5 +1,7 @@
 package dev.ecattez.shahmat.infra;
 
+import dev.ecattez.shahmat.domain.board.Direction;
+import dev.ecattez.shahmat.domain.board.Orientation;
 import dev.ecattez.shahmat.domain.board.piece.PieceBox;
 import dev.ecattez.shahmat.domain.board.piece.PieceColor;
 import dev.ecattez.shahmat.domain.board.piece.PieceType;
@@ -7,6 +9,7 @@ import dev.ecattez.shahmat.domain.board.square.Square;
 import dev.ecattez.shahmat.domain.command.InitBoard;
 import dev.ecattez.shahmat.domain.command.Move;
 import dev.ecattez.shahmat.domain.command.Promote;
+import dev.ecattez.shahmat.domain.event.BoardInitialized;
 import dev.ecattez.shahmat.domain.event.ChessEvent;
 import dev.ecattez.shahmat.domain.event.PawnPromoted;
 import dev.ecattez.shahmat.domain.event.PieceMoved;
@@ -38,11 +41,13 @@ public class ChessGameInfraTest {
 
         ChessGameId chessGameId = ChessGameId.newInstance();
 
-        initBoard(pubSub, eventStore, chessGameId);
+        startGame(pubSub, eventStore, chessGameId);
 
         Assertions
             .assertThat(eventStore.history(chessGameId))
-            .hasSize(33);
+            .containsOnlyOnce(
+                new BoardInitialized(GameType.CLASSICAL)
+            );
         ;
     }
 
@@ -58,7 +63,7 @@ public class ChessGameInfraTest {
 
         ChessGameId chessGameId = ChessGameId.newInstance();
 
-        initBoard(pubSub, eventStore, chessGameId);
+        startGame(pubSub, eventStore, chessGameId);
         move(pubSub, eventStore, chessGameId, PieceType.PAWN, new Square("a2"), new Square("a3"));
 
 
@@ -89,13 +94,33 @@ public class ChessGameInfraTest {
 
         ChessGameId chessGameId = ChessGameId.newInstance();
 
-        initBoard(pubSub, eventStore, chessGameId);
+        startGame(pubSub, eventStore, chessGameId);
 
-        String previous = "a2";
-        for (String location: List.of("a4", "a5", "a6", "b7", "a8")) {
-            move(pubSub, eventStore, chessGameId, PieceType.PAWN, new Square(previous), new Square(location));
-            previous = location;
+        List<MovePair> moveSeries = List.of(
+            new MovePair("a3", "h6"),
+            new MovePair("a4", "h5"),
+            new MovePair("a5", "h4"),
+            new MovePair("a6", "h3"),
+            new MovePair("b7", "g2")
+        );
+
+        for (int i = 0; i < moveSeries.size(); i++) {
+            MovePair pair = moveSeries.get(i);
+            MovePair before = i - 1 >= 0
+                ? moveSeries.get(i - 1)
+                : new MovePair(
+                    new Square(pair.whiteMove).getNeighbour(Direction.BACKWARD, Orientation.UPWARD).toString(),
+                    new Square(pair.blackMove).getNeighbour(Direction.BACKWARD, Orientation.DOWNWARD).toString()
+                );
+
+            Square whiteMove = new Square(pair.whiteMove);
+            Square blackMove = new Square(pair.blackMove);
+
+            move(pubSub, eventStore, chessGameId, PieceType.PAWN, new Square(before.whiteMove), whiteMove);
+            move(pubSub, eventStore, chessGameId, PieceType.PAWN, new Square(before.blackMove), blackMove);
         }
+
+        move(pubSub, eventStore, chessGameId, PieceType.PAWN, new Square("b7"), new Square("a8"));
 
         promote(pubSub, eventStore, chessGameId, new Square("a8"), PieceType.QUEEN);
 
@@ -124,7 +149,7 @@ public class ChessGameInfraTest {
         ChessGameId chessGameId = ChessGameId.newInstance();
         long existingSequence = eventStore.history(chessGameId).size();
 
-        initBoard(pubSub, eventStore, chessGameId);
+        startGame(pubSub, eventStore, chessGameId);
 
         Exception violation = null;
         try {
@@ -149,7 +174,7 @@ public class ChessGameInfraTest {
             .isInstanceOf(SequenceAlreadyExists.class);
     }
 
-    private void initBoard(PubSub pubSub, EventStore eventStore, ChessGameId chessGameId) {
+    private void startGame(PubSub pubSub, EventStore eventStore, ChessGameId chessGameId) {
         List<ChessEvent> history = eventStore.history(chessGameId);
 
         pubSub.dispatch(

@@ -2,12 +2,14 @@ package dev.ecattez.shahmat.domain.game;
 
 import dev.ecattez.shahmat.domain.board.Board;
 import dev.ecattez.shahmat.domain.board.piece.Piece;
+import dev.ecattez.shahmat.domain.board.piece.PieceColor;
 import dev.ecattez.shahmat.domain.board.piece.PieceType;
 import dev.ecattez.shahmat.domain.board.square.Square;
 import dev.ecattez.shahmat.domain.board.violation.BoardAlreadyInitialized;
 import dev.ecattez.shahmat.domain.board.violation.ImpossibleToMove;
 import dev.ecattez.shahmat.domain.board.violation.InvalidMove;
 import dev.ecattez.shahmat.domain.board.violation.NoPieceOnSquare;
+import dev.ecattez.shahmat.domain.board.violation.PieceNotOwned;
 import dev.ecattez.shahmat.domain.board.violation.PromotionMustBeDone;
 import dev.ecattez.shahmat.domain.board.violation.PromotionRefused;
 import dev.ecattez.shahmat.domain.board.violation.RulesViolation;
@@ -20,10 +22,10 @@ import dev.ecattez.shahmat.domain.event.ChessEvent;
 import dev.ecattez.shahmat.domain.event.MovementToEventVisitor;
 import dev.ecattez.shahmat.domain.event.PawnPromoted;
 import dev.ecattez.shahmat.domain.event.PromotionProposed;
+import dev.ecattez.shahmat.domain.event.TurnChanged;
 import dev.ecattez.shahmat.domain.game.init.GameInitialization;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -48,7 +50,8 @@ public class ChessGame {
                 .accept(GAME_INITIALIZATION)
                 .init(),
             List.of(
-                new BoardInitialized(gameType)
+                new BoardInitialized(command.gameType),
+                new TurnChanged(PieceColor.WHITE)
             )
         )
         .flatMap(Collection::stream)
@@ -76,12 +79,15 @@ public class ChessGame {
             throw new NoPieceOnSquare(from);
         }
 
-        Piece pieceToMove = board
-            .findPiece(from)
-            .filter(piece -> piece.isOfType(command.type))
-            .orElseThrow(() -> new WrongPieceSelected(from));
+        Piece pieceToMove = board.getPiece(from);
+        if (!BoardDecision.isOwnedByCurrentPlayer(board, pieceToMove)) {
+            throw new PieceNotOwned(from);
+        }
+        if (!pieceToMove.isOfType(command.type)) {
+            throw new WrongPieceSelected(from);
+        }
 
-        List<ChessEvent> events = BoardDecision.findMovement(pieceToMove, from, to, board)
+        List<ChessEvent> events = BoardDecision.findMovement(board, from, to, pieceToMove)
             .stream()
             .map(move -> move.accept(EVENTS_FROM_MOVEMENT))
             .flatMap(Collection::stream)
@@ -91,11 +97,13 @@ public class ChessGame {
             throw new ImpossibleToMove(pieceToMove, from, to);
         }
 
-        if (BoardDecision.canBePromoted(pieceToMove, to)) {
-            events.add(
-                new PromotionProposed(to)
-            );
-        }
+        events.add(
+            BoardDecision.canBePromoted(to, pieceToMove)
+                ? new PromotionProposed(to)
+                : new TurnChanged(
+                    BoardDecision.whoseNextTurnIs(board)
+                )
+        );
 
         return events;
     }
@@ -117,10 +125,13 @@ public class ChessGame {
             throw new PromotionRefused(PromotionRefused.Reason.PIECE_CAN_NOT_BE_PROMOTED);
         }
 
-        return Collections.singletonList(
+        return List.of(
             new PawnPromoted(
                 location,
                 typeOfPromotion
+            ),
+            new TurnChanged(
+                BoardDecision.whoseNextTurnIs(board)
             )
         );
     }

@@ -2,6 +2,7 @@ package dev.ecattez.shahmat.domain.board;
 
 import dev.ecattez.shahmat.domain.board.piece.Piece;
 import dev.ecattez.shahmat.domain.board.piece.PieceBox;
+import dev.ecattez.shahmat.domain.board.piece.PieceColor;
 import dev.ecattez.shahmat.domain.board.piece.PieceType;
 import dev.ecattez.shahmat.domain.board.piece.pawn.EnPassantRules;
 import dev.ecattez.shahmat.domain.board.square.Square;
@@ -15,6 +16,7 @@ import dev.ecattez.shahmat.domain.event.PieceCapturedEnPassant;
 import dev.ecattez.shahmat.domain.event.PieceMoved;
 import dev.ecattez.shahmat.domain.event.PiecePositioned;
 import dev.ecattez.shahmat.domain.event.PromotionProposed;
+import dev.ecattez.shahmat.domain.event.TurnChanged;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,9 +28,11 @@ public class Board extends EventListener {
     private boolean playing;
     private Square enPassantPieceLocation;
     private Square promotionLocation;
+    private PieceColor turnOf;
 
     public Board() {
         this.piecePerSquare = new HashMap<>();
+        this.turnOf = PieceColor.WHITE;
 
         onEvent(PiecePositioned.class, this::apply);
         onEvent(BoardInitialized.class, this::apply);
@@ -37,6 +41,7 @@ public class Board extends EventListener {
         onEvent(PieceMoved.class, this::apply);
         onEvent(PromotionProposed.class, this::apply);
         onEvent(PawnPromoted.class, this::apply);
+        onEvent(TurnChanged.class, this::apply);
     }
 
     public Optional<Square> findEnPassantPieceLocation() {
@@ -72,6 +77,14 @@ public class Board extends EventListener {
         return findPiece(neighbour)
             .filter(piece::isOpponent)
             .isPresent();
+    }
+
+    public PieceColor turnOf() {
+        return turnOf;
+    }
+
+    public boolean isTurnOf(PieceColor color) {
+        return turnOf.equals(color);
     }
 
     @Override
@@ -145,6 +158,10 @@ public class Board extends EventListener {
         );
 
         promotionLocation = null;
+    }
+
+    public void apply(TurnChanged event) {
+        turnOf = event.color;
     }
 
 }

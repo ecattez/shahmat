@@ -2,6 +2,7 @@ package dev.ecattez.shahmat.domain.game;
 
 import dev.ecattez.shahmat.domain.board.Board;
 import dev.ecattez.shahmat.domain.board.piece.Piece;
+import dev.ecattez.shahmat.domain.board.piece.PieceColor;
 import dev.ecattez.shahmat.domain.board.piece.PieceType;
 import dev.ecattez.shahmat.domain.board.square.Square;
 import dev.ecattez.shahmat.domain.board.piece.move.Movement;
@@ -23,21 +24,36 @@ public class BoardDecision {
         return board;
     };
 
-    public static Optional<Movement> findMovement(Piece pieceOnBoard, Square from, Square to, Board board) {
+    public static Optional<Movement> findMovement(Board board, Square from, Square to, Piece pieceOnBoard) {
         return pieceOnBoard.type().accept(MovingRules.getInstance())
             .findMovement(board, pieceOnBoard, from, to);
+    }
+
+    public static List<Movement> getMovements(Board board, Square from, Piece pieceOnBoard) {
+        return pieceOnBoard.type().accept(MovingRules.getInstance())
+            .getAvailableMovements(board, pieceOnBoard, from);
     }
 
     public static boolean canPromote(PieceType typeOfPromotion) {
         return typeOfPromotion.accept(PawnPromotionAllowedPieces.getInstance());
     }
 
-    public static boolean canBePromoted(Piece pieceOnBoard, Square location) {
+    public static boolean canBePromoted(Square location, Piece pieceOnBoard) {
         return pieceOnBoard.isOfType(PieceType.PAWN) &&
             pieceOnBoard
                 .color()
                 .accept(PawnPromotionRankVisitor.getInstance())
                 .equals(location.rank);
+    }
+
+    public static PieceColor whoseNextTurnIs(Board board) {
+        return board
+            .turnOf()
+            .opposite();
+    }
+
+    public static boolean isOwnedByCurrentPlayer(Board board, Piece piece) {
+        return board.isTurnOf(piece.color());
     }
 
 }
