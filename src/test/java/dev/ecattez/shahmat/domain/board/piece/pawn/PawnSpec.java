@@ -103,7 +103,7 @@ public class PawnSpec {
         stage
             .given().a_$_pawn_in_$(color, from)
             .and().an_opponent_piece_in_$(opponentLocation)
-            .when().the_opponent_piece_is_captured_by_the_pawn()
+            .when().the_pawn_is_moved_to_$(opponentLocation)
             .then().the_pawn_captures_the_opponent_piece();
     }
 

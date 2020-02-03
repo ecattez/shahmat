@@ -25,6 +25,7 @@ import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.LinkRelation;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -264,7 +265,9 @@ public class HalBoardResource {
     }
 
     private List<String> toAvailableMoves(Board board, Square occupied, Piece piece) {
-        if (!BoardDecision.isOwnedByCurrentPlayer(board, piece)) {
+        // fixme: double logic between business and infra for move propositions ??
+        if (!BoardDecision.isOwnedByCurrentPlayer(board, piece) ||
+            (board.isPromoting() && !board.isPromotingIn(occupied))) {
             return Collections.emptyList();
         }
 

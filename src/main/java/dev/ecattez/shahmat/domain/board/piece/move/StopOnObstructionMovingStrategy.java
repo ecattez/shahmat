@@ -78,7 +78,7 @@ public abstract class StopOnObstructionMovingStrategy extends AbstractMovingStra
     }
 
     private void addCaptureIfOpponentPresent(Board board, Piece piece, Square from, List<Movement> neighbourKept, Square next) {
-        if (board.isOpponentOf(next, piece)) {
+        if (board.hasOpponent(next, piece)) {
             neighbourKept.add(
                 new Capture(
                     piece,

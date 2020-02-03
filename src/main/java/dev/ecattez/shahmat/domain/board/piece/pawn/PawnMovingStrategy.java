@@ -69,7 +69,7 @@ public class PawnMovingStrategy extends AbstractMovingStrategy {
         return Arrays.stream(CAPTURABLE_DIRECTIONS)
             .map(direction -> from.findNeighbour(direction, piece.orientation()))
             .flatMap(Optional::stream)
-            .filter(neighbour -> board.isOpponentOf(neighbour, piece))
+            .filter(neighbour -> board.hasOpponent(neighbour, piece))
             .map(neighbour -> new Capture(piece, from, neighbour, board.getPiece(neighbour)))
             .collect(Collectors.toList());
     }
