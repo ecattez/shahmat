@@ -15,6 +15,7 @@ import org.springframework.hateoas.Link;
 import java.io.IOException;
 import java.util.List;
 
+// fixme: must be tested
 public class HalBoardSerializer extends JsonSerializer<HalBoard> {
 
     @Override
@@ -72,16 +73,15 @@ public class HalBoardSerializer extends JsonSerializer<HalBoard> {
     private void generatePiece(JsonGenerator generator, HalPiece piece) throws IOException {
         generator.writeObjectFieldStart("piece");
         generator.writeStringField("type", piece.getType());
-        generator.writeStringField("color", piece.getType());
+        generator.writeStringField("color", piece.getColor());
         generator.writeStringField("unicode", piece.getUnicode());
         generator.writeEndObject();
     }
 
     private void generatePieceTemplates(JsonGenerator generator, HalPiece piece) throws IOException {
-        generator.writeArrayFieldStart("_templates");
+        generator.writeObjectFieldStart("_templates");
 
         if (piece.isPromoting()) {
-            generator.writeStartObject();
             generator.writeObjectFieldStart("promote");
             generator.writeStringField("method", "PUT");
             generator.writeArrayFieldStart("properties");
@@ -101,9 +101,7 @@ public class HalBoardSerializer extends JsonSerializer<HalBoard> {
             generator.writeEndObject();
             generator.writeEndArray();
             generator.writeEndObject();
-            generator.writeEndObject();
         } else if (piece.canMove()) {
-            generator.writeStartObject();
             generator.writeObjectFieldStart("move");
             generator.writeStringField("method", "POST");
 
@@ -127,20 +125,17 @@ public class HalBoardSerializer extends JsonSerializer<HalBoard> {
             generator.writeEndObject();
             generator.writeEndArray();
             generator.writeEndObject();
-            generator.writeEndObject();
         }
 
-        generator.writeEndArray();
+        generator.writeEndObject();
     }
 
     private void generateLinks(JsonGenerator generator, List<Link> links) throws IOException {
-        generator.writeArrayFieldStart("_links");
+        generator.writeObjectFieldStart("_links");
         for (Link link: links) {
-            generator.writeStartObject();
             generator.writeObjectField(link.getRel().value(), new JsonHref(link));
-            generator.writeEndObject();
         }
-        generator.writeEndArray();
+        generator.writeEndObject();
     }
 
     private static final class JsonHref {

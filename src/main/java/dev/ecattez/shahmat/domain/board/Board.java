@@ -8,7 +8,6 @@ import dev.ecattez.shahmat.domain.board.piece.pawn.EnPassantRules;
 import dev.ecattez.shahmat.domain.board.square.Square;
 import dev.ecattez.shahmat.domain.board.violation.NoPieceOnSquare;
 import dev.ecattez.shahmat.domain.event.BoardInitialized;
-import dev.ecattez.shahmat.domain.event.ChessEvent;
 import dev.ecattez.shahmat.domain.event.EventListener;
 import dev.ecattez.shahmat.domain.event.PawnPromoted;
 import dev.ecattez.shahmat.domain.event.PieceCaptured;
@@ -73,9 +72,15 @@ public class Board extends EventListener {
         return playing;
     }
 
-    public boolean isOpponentOf(Square neighbour, Piece piece) {
-        return findPiece(neighbour)
+    public boolean hasOpponent(Square location, Piece piece) {
+        return findPiece(location)
             .filter(piece::isOpponent)
+            .isPresent();
+    }
+
+    public boolean hasAlly(Square location, Piece piece) {
+        return findPiece(location)
+            .filter(piece::isAlly)
             .isPresent();
     }
 
@@ -85,12 +90,6 @@ public class Board extends EventListener {
 
     public boolean isTurnOf(PieceColor color) {
         return turnOf.equals(color);
-    }
-
-    @Override
-    public void apply(ChessEvent event) {
-        enPassantPieceLocation = null;
-        super.apply(event);
     }
 
     public void apply(PiecePositioned event) {
@@ -116,6 +115,7 @@ public class Board extends EventListener {
         );
 
         piecePerSquare.remove(opponentSquare);
+        enPassantPieceLocation = null;
     }
 
     public void apply(PieceCaptured event) {
@@ -125,6 +125,7 @@ public class Board extends EventListener {
 
         piecePerSquare.remove(from);
         piecePerSquare.put(end, capturedBy);
+        enPassantPieceLocation = null;
     }
 
     public void apply(PieceMoved event) {
@@ -135,6 +136,7 @@ public class Board extends EventListener {
         piecePerSquare.remove(from);
         piecePerSquare.put(to, piece);
 
+        enPassantPieceLocation = null;
         if (new EnPassantRules().couldBeCapturedEnPassant(piece, from, to)) {
             enPassantPieceLocation = to;
         }

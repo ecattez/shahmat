@@ -14,6 +14,7 @@ import dev.ecattez.shahmat.domain.board.violation.NoPieceOnSquare;
 import dev.ecattez.shahmat.domain.board.violation.RulesViolation;
 import dev.ecattez.shahmat.domain.board.violation.WrongPieceSelected;
 import dev.ecattez.shahmat.domain.command.Move;
+import dev.ecattez.shahmat.domain.event.ChessEvent;
 import dev.ecattez.shahmat.domain.event.PiecePositioned;
 import dev.ecattez.shahmat.domain.game.ChessGame;
 import org.assertj.core.api.Assertions;
@@ -21,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 @ExtendWith({
@@ -37,8 +39,10 @@ public class MoveSpec {
     @Test
     public void move_fails_when_from_and_to_are_the_same_square() {
         for (PieceType pieceType: PieceType.values()) {
+            List<ChessEvent> returnedEvents = new LinkedList<>();
+
             try {
-                ChessGame.move(
+                returnedEvents = ChessGame.move(
                     Collections.emptyList(),
                     new Move(
                         pieceType,
@@ -51,13 +55,19 @@ public class MoveSpec {
                     .assertThat(violation)
                     .isInstanceOf(InvalidMove.class);
             }
+
+            Assertions
+                .assertThat(returnedEvents)
+                .hasSize(0);
         }
     }
 
     @Test
     public void move_fails_when_piece_is_not_on_selected_square() {
+        List<ChessEvent> returnedEvents = new LinkedList<>();
+
         try {
-            ChessGame.move(
+            returnedEvents = ChessGame.move(
                 List.of(
                     new PiecePositioned(
                         pieceFactory.createPiece(
@@ -78,12 +88,18 @@ public class MoveSpec {
                 .assertThat(violation)
                 .isInstanceOf(NoPieceOnSquare.class);
         }
+
+        Assertions
+            .assertThat(returnedEvents)
+            .hasSize(0);
     }
 
     @Test
     public void move_fails_when_piece_is_not_on_the_type_on_selected_square() {
+        List<ChessEvent> returnedEvents = new LinkedList<>();
+
         try {
-            ChessGame.move(
+            returnedEvents = ChessGame.move(
                 List.of(
                     new PiecePositioned(
                         pieceFactory.createPiece(
@@ -104,6 +120,10 @@ public class MoveSpec {
                 .assertThat(violation)
                 .isInstanceOf(WrongPieceSelected.class);
         }
+
+        Assertions
+            .assertThat(returnedEvents)
+            .hasSize(0);
     }
 
 }

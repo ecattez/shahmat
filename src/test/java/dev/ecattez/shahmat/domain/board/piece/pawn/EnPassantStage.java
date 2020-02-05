@@ -111,12 +111,20 @@ public class EnPassantStage extends Stage<EnPassantStage> {
             from.rank
         );
 
-        history.add(
-            new PieceMoved(
-                opponentPawn,
-                opponentLocation
-                    .getNeighbour(Direction.BACKWARD, opponentPawn.orientation(), 2),
-                opponentLocation
+        history.addAll(
+            List.of(
+                new TurnChanged(
+                    opponentPawn.color()
+                ),
+                new PieceMoved(
+                    opponentPawn,
+                    opponentLocation
+                        .getNeighbour(Direction.BACKWARD, opponentPawn.orientation(), 2),
+                    opponentLocation
+                ),
+                new TurnChanged(
+                    pawn.color()
+                )
             )
         );
 

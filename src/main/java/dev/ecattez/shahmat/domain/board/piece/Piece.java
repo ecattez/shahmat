@@ -51,7 +51,11 @@ public abstract class Piece implements Figurine, Typed, Colored, Oriented {
     }
 
     public boolean isOpponent(Piece piece) {
-        return piece != null && piece.isOfColor(this.color.opposite());
+        return piece != null && piece.isOfColor(color.opposite());
+    }
+
+    public boolean isAlly(Piece piece) {
+        return piece != null && piece.isOfColor(color);
     }
 
     @Override

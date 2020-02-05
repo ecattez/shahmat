@@ -3,6 +3,7 @@ package dev.ecattez.shahmat.domain.board.init.classical;
 import com.tngtech.jgiven.Stage;
 import com.tngtech.jgiven.annotation.AfterScenario;
 import com.tngtech.jgiven.annotation.BeforeStage;
+import dev.ecattez.shahmat.domain.board.BoardStringFormatter;
 import dev.ecattez.shahmat.domain.board.piece.PieceBox;
 import dev.ecattez.shahmat.domain.board.piece.PieceColor;
 import dev.ecattez.shahmat.domain.board.piece.PieceFactory;
@@ -32,31 +33,35 @@ public class ClassicalStage extends Stage<ClassicalStage> {
     private List<ChessEvent> returnedEvents;
     private List<ChessEvent> history;
     private BoardAlreadyInitialized violation;
+    private BoardStringFormatter formatter;
 
     @BeforeStage
     public void init() {
         this.pieceFactory = PieceBox.getInstance();
         this.history = new LinkedList<>();
         this.returnedEvents = new LinkedList<>();
+        this.formatter = new BoardStringFormatter();
     }
 
     @AfterScenario
     public void after() {
         System.out.println("Before command: " + gameType);
         System.out.println(
-            BoardDecision.replay(
-                history
-            ).toString()
+            formatter.format(
+                BoardDecision.replay(history)
+            )
         );
         System.out.println();
 
         System.out.println("After command: " + gameType);
         System.out.println(
-            BoardDecision.replay(
-                Stream.of(history, returnedEvents)
-                    .flatMap(Collection::stream)
-                    .collect(Collectors.toList())
-            ).toString()
+            formatter.format(
+                BoardDecision.replay(
+                    Stream.of(history, returnedEvents)
+                        .flatMap(Collection::stream)
+                        .collect(Collectors.toList())
+                )
+            )
         );
         if (violation != null) {
             System.out.println(violation.getMessage());

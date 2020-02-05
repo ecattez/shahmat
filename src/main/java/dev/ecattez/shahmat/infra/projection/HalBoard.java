@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import dev.ecattez.shahmat.domain.board.piece.PieceColor;
 import dev.ecattez.shahmat.infra.controller.HalBoardSerializer;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -27,8 +26,7 @@ public class HalBoard {
         String victoryOf
     ) {
         this.id = id;
-        this.squares = new ArrayList<>(squares);
-        this.squares.sort(new HalSquareComparator());
+        this.squares = squares;
 
         this.capturedByBlacks = capturedByBlacks;
         this.capturedByWhites = capturedByWhites;

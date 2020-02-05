@@ -70,6 +70,21 @@ The queen chess piece is like a combination of the Rook and Bishop chess pieces.
 - It cannot move past any piece that is obstructing its path.
 - It can be used to capture any of your opponent's pieces on the board.
 
+![Queen moves](https://cdn11.bigcommerce.com/s-dlmdd/content/queen-moves.jpg)
+
+## Knight
+
+The Knight chess piece moves in a very mysterious way. Unlike Rooks, Bishops or Queens, the Knight is limited in the number of squares it can move across.
+
+In fact, the piece moves in a shape similar to the uppercase "L". Here are the specifics:
+
+- it can move forward, backward, left or right two squares and must then move one square in either perpendicular direction.
+- it can only move to one of up to eight positions on the board.
+- it can move to any position not already inhabited by another piece of the same color.
+- it can skip over any other pieces to reach its destination position.
+
+![Knight moves](https://cdn11.bigcommerce.com/s-dlmdd/content/knight-moves.jpg)
+
 ## References
 
 [http://www.chesscoachonline.com/chess-articles/chess-rules](http://www.chesscoachonline.com/chess-articles/chess-rules)
