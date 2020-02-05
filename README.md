@@ -85,6 +85,15 @@ In fact, the piece moves in a shape similar to the uppercase "L". Here are the s
 
 ![Knight moves](https://cdn11.bigcommerce.com/s-dlmdd/content/knight-moves.jpg)
 
+## King
+
+King chess pieces are somewhat limited in their movement. They cannot go riding across the chess board as quickly as most other pieces and they are easier to contain than most chess pieces from an opponent's perspective. Here are a few rules to note:
+
+- The king piece can move one single square in any direction.
+- The king cannot move onto a square that is currently occupied by a piece from its own team.
+
+![King moves](https://cdn11.bigcommerce.com/s-dlmdd/content/king-moves.jpg)
+
 ## References
 
 [http://www.chesscoachonline.com/chess-articles/chess-rules](http://www.chesscoachonline.com/chess-articles/chess-rules)

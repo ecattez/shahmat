@@ -105,7 +105,7 @@ public class BishopStage extends Stage<BishopStage> {
         return self();
     }
 
-    public BishopStage the_square_$_is_not_vacant(Square obstructedSquare) {
+    public BishopStage the_square_$_is_not_vacant(String obstructed) {
         Piece anotherPiece = mock(Piece.class);
         Mockito.when(anotherPiece.unicode())
             .thenReturn("X");
@@ -113,7 +113,7 @@ public class BishopStage extends Stage<BishopStage> {
         history.add(
             new PiecePositioned(
                 anotherPiece,
-                obstructedSquare
+                new Square(obstructed)
             )
         );
         return self();

@@ -28,21 +28,23 @@ public class BoardInitializer {
 
     @PostConstruct
     private void init() {
-        ChessGameId chessGameId = ChessGameId.newInstance();
+        for (int i=0; i < 10; i++) {
+            ChessGameId chessGameId = ChessGameId.newInstance();
 
-        pubSub.dispatch(
-            chessGameId,
-            0L,
-            ChessGame.initalizeBoard(
-                Collections.emptyList(),
-                new InitBoard(
-                    GameType.CLASSICAL
+            pubSub.dispatch(
+                chessGameId,
+                0L,
+                ChessGame.initalizeBoard(
+                    Collections.emptyList(),
+                    new InitBoard(
+                        GameType.CLASSICAL
+                    )
                 )
-            )
-        );
+            );
 
-        Link urlToBoard = HalBoardResource.getBoardLink(IanaLinkRelations.SELF, chessGameId.value);
+            Link urlToBoard = HalBoardResource.getBoardLink(IanaLinkRelations.SELF, chessGameId.value);
 
-        LOGGER.info("Test board initialized - " + urlToBoard);
+            LOGGER.info("Test board initialized - " + urlToBoard);
+        }
     }
 }

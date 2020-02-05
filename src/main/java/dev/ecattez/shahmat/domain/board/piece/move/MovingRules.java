@@ -3,10 +3,11 @@ package dev.ecattez.shahmat.domain.board.piece.move;
 import dev.ecattez.shahmat.domain.board.piece.PieceTypeVisitor;
 import dev.ecattez.shahmat.domain.board.piece.bishop.BishopMovingStrategy;
 import dev.ecattez.shahmat.domain.board.piece.knight.KnightMovingStrategy;
+import dev.ecattez.shahmat.domain.board.piece.king.KingMovingStrategy;
+import dev.ecattez.shahmat.domain.board.piece.knight.KnightMovingStrategy;
 import dev.ecattez.shahmat.domain.board.piece.pawn.PawnMovingStrategy;
 import dev.ecattez.shahmat.domain.board.piece.queen.QueenMovingStrategy;
 import dev.ecattez.shahmat.domain.board.piece.rook.RookMovingStrategy;
-import dev.ecattez.shahmat.domain.board.violation.RuleNotImplemented;
 
 public class MovingRules implements PieceTypeVisitor<MovingStrategy> {
 
@@ -48,7 +49,7 @@ public class MovingRules implements PieceTypeVisitor<MovingStrategy> {
 
     @Override
     public MovingStrategy visitKing() {
-        throw new RuleNotImplemented("King can not move yet");
+        return new KingMovingStrategy();
     }
 
 }

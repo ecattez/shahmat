@@ -1,4 +1,4 @@
-package dev.ecattez.shahmat.domain.board.piece.queen;
+package dev.ecattez.shahmat.domain.board.piece.king;
 
 import com.tngtech.jgiven.Stage;
 import com.tngtech.jgiven.annotation.AfterScenario;
@@ -33,9 +33,9 @@ import java.util.stream.Stream;
 
 import static org.mockito.Mockito.mock;
 
-public class QueenStage extends Stage<QueenStage> {
+public class KingStage extends Stage<KingStage> {
 
-    private Piece queen;
+    private Piece king;
     private Square from;
     private Square to;
     private Piece opponentPiece;
@@ -56,7 +56,7 @@ public class QueenStage extends Stage<QueenStage> {
 
     @AfterScenario
     public void after() {
-        System.out.println("Before command: " + queen.color());
+        System.out.println("Before command: " + king.color());
         System.out.println(
             formatter.format(
                 BoardDecision.replay(history)
@@ -64,7 +64,7 @@ public class QueenStage extends Stage<QueenStage> {
         );
         System.out.println();
 
-        System.out.println("After command: " + queen.color());
+        System.out.println("After command: " + king.color());
         System.out.println(
             formatter.format(
                 BoardDecision.replay(
@@ -80,32 +80,49 @@ public class QueenStage extends Stage<QueenStage> {
         System.out.println();
     }
 
-    public QueenStage a_$_queen_in_$(String color, String from) {
+    public KingStage a_$_king_in_$(String color, String from) {
         this.from = new Square(from);
-        this.queen = pieceFactory.createPiece(
-            PieceType.QUEEN,
+        this.king = pieceFactory.createPiece(
+            PieceType.KING,
             PieceColor.valueOf(color)
         );
         this.history.addAll(
             List.of(
                 new PiecePositioned(
-                    queen,
+                    king,
                     this.from
                 ),
                 new TurnChanged(
-                    queen.color()
+                    king.color()
                 )
             )
         );
         return self();
     }
 
-    public QueenStage the_squares_between_$_and_$_are_vacant(String from, String to) {
+    public KingStage the_one_square_$_is_vacant(String direction) {
         // todo: event to clean a square / make a square vacant
         return self();
     }
 
-    public QueenStage the_square_$_is_not_vacant(String obstructed) {
+    public KingStage the_one_square_$_is_not_vacant(String direction) {
+        Piece anotherPiece = mock(Piece.class);
+        Mockito.when(anotherPiece.unicode())
+            .thenReturn("X");
+
+        history.add(
+            new PiecePositioned(
+                anotherPiece,
+                from.getNeighbour(
+                    Direction.valueOf(direction),
+                    king.orientation()
+                )
+            )
+        );
+        return self();
+    }
+
+    public KingStage the_square_$_is_not_vacant(String obstructed) {
         Piece anotherPiece = mock(Piece.class);
         Mockito.when(anotherPiece.unicode())
             .thenReturn("X");
@@ -119,11 +136,11 @@ public class QueenStage extends Stage<QueenStage> {
         return self();
     }
 
-    public QueenStage an_opponent_piece_is_in_$(String opponentLocation) {
+    public KingStage an_opponent_piece_is_in_$(String opponentLocation) {
         this.to = new Square(opponentLocation);
         this.opponentPiece = pieceFactory.createPiece(
             PieceType.PAWN,
-            queen.color().opposite()
+            king.color().opposite()
         );
         history.add(
             new PiecePositioned(
@@ -134,16 +151,16 @@ public class QueenStage extends Stage<QueenStage> {
         return self();
     }
 
-    public QueenStage the_queen_is_moved_$_$(int times, String direction) {
+    public KingStage the_king_is_moved_$_$(int times, String direction) {
         try {
             this.returnedEvents = ChessGame.move(
                 Collections.unmodifiableList(history),
                 new Move(
-                    PieceType.QUEEN,
+                    PieceType.KING,
                     from,
                     from.getNeighbour(
                         Direction.valueOf(direction),
-                        queen.orientation(),
+                        king.orientation(),
                         times
                     )
                 )
@@ -154,12 +171,31 @@ public class QueenStage extends Stage<QueenStage> {
         return self();
     }
 
-    public QueenStage the_queen_is_moved_to_$(String to) {
+    public KingStage the_king_is_moved_$(String direction) {
         try {
             this.returnedEvents = ChessGame.move(
                 Collections.unmodifiableList(history),
                 new Move(
-                    PieceType.QUEEN,
+                    PieceType.KING,
+                    from,
+                    from.getNeighbour(
+                        Direction.valueOf(direction),
+                        king.orientation()
+                    )
+                )
+            );
+        } catch (RulesViolation e) {
+            violation = e;
+        }
+        return self();
+    }
+
+    public KingStage the_king_is_moved_to_$(String to) {
+        try {
+            this.returnedEvents = ChessGame.move(
+                Collections.unmodifiableList(history),
+                new Move(
+                    PieceType.KING,
                     from,
                     new Square(to)
                 )
@@ -170,12 +206,12 @@ public class QueenStage extends Stage<QueenStage> {
         return self();
     }
 
-    public QueenStage the_queen_is_in_$(String to) {
+    public KingStage the_king_is_in_$(String to) {
         Assertions
             .assertThat(returnedEvents)
             .contains(
                 new PieceMoved(
-                    queen,
+                    king,
                     from,
                     new Square(to)
                 )
@@ -183,24 +219,25 @@ public class QueenStage extends Stage<QueenStage> {
         return self();
     }
 
-    public QueenStage the_move_is_refused() {
+    public KingStage the_move_is_refused() {
         Assertions
             .assertThat(violation)
             .isInstanceOf(ImpossibleToMove.class);
         return self();
     }
 
-    public QueenStage the_queen_captures_the_opponent_piece() {
+    public KingStage the_king_captures_the_opponent_piece() {
         Assertions
             .assertThat(returnedEvents)
             .contains(
                 new PieceCaptured(
                     opponentPiece,
                     to,
-                    queen,
+                    king,
                     from
                 )
             );
         return self();
     }
+
 }
