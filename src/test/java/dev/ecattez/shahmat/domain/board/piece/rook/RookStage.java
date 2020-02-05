@@ -105,7 +105,7 @@ public class RookStage extends Stage<RookStage> {
         return self();
     }
 
-    public RookStage the_square_$_is_not_vacant(Square obstructedSquare) {
+    public RookStage the_square_$_is_not_vacant(String obstructed) {
         Piece anotherPiece = mock(Piece.class);
         Mockito.when(anotherPiece.unicode())
             .thenReturn("X");
@@ -113,7 +113,7 @@ public class RookStage extends Stage<RookStage> {
         history.add(
             new PiecePositioned(
                 anotherPiece,
-                obstructedSquare
+                new Square(obstructed)
             )
         );
         return self();

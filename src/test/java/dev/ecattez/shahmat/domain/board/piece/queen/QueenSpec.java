@@ -5,7 +5,6 @@ import com.tngtech.jgiven.junit5.JGivenExtension;
 import com.tngtech.junit.dataprovider.DataProvider;
 import com.tngtech.junit.dataprovider.DataProviderExtension;
 import com.tngtech.junit.dataprovider.UseDataProviderExtension;
-import dev.ecattez.shahmat.domain.board.square.Square;
 import dev.ecattez.shahmat.domain.board.Rules;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -77,13 +76,13 @@ public class QueenSpec {
     public void queen_can_not_move_beyond_an_obstructed_path(
         String color,
         String from,
-        Square obstructedSquare,
+        String obstructed,
         int times,
         String direction
     ) {
         stage
             .given().a_$_queen_in_$(color, from)
-            .and().the_square_$_is_not_vacant(obstructedSquare)
+            .and().the_square_$_is_not_vacant(obstructed)
             .when().the_queen_is_moved_$_$(times, direction)
             .then().the_move_is_refused();
     }
