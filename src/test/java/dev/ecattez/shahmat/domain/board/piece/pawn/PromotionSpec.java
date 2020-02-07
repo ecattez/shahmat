@@ -54,7 +54,7 @@ public class PromotionSpec {
     }
 
     @Test
-    public void pawn_can_not_be_promoted_if_it_has_not_been_proposed_to_it() {
+    public void a_pawn_can_not_be_promoted_if_it_has_not_been_proposed_to_it() {
         stage
             .given().a_pawn_not_in_the_other_side_of_the_chess_board()
             .when().the_pawn_is_promoted_to_a_valid_piece()
@@ -67,7 +67,7 @@ public class PromotionSpec {
         "PAWN",
         "KING",
     })
-    public void pawn_can_not_be_promoted_for_a_pawn_nor_a_king(String pieceType) {
+    public void a_pawn_can_not_be_promoted_for_a_pawn_nor_a_king(String pieceType) {
         stage
             .given().a_pawn_in_the_other_side_of_the_chess_board()
             .when().the_pawn_is_promoted_to_a_$(pieceType)
@@ -82,7 +82,7 @@ public class PromotionSpec {
         "ROOK",
         "BISHOP"
     })
-    public void pawn_can_be_promoted(
+    public void a_pawn_can_be_promoted(
         String promotionType
     ) {
         stage

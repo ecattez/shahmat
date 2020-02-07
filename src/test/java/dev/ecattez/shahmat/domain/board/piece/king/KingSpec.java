@@ -6,6 +6,7 @@ import com.tngtech.junit.dataprovider.DataProvider;
 import com.tngtech.junit.dataprovider.DataProviderExtension;
 import com.tngtech.junit.dataprovider.UseDataProviderExtension;
 import dev.ecattez.shahmat.domain.board.Rules;
+import dev.ecattez.shahmat.domain.board.move.MoveTag;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
     UseDataProviderExtension.class
 })
 @Rules
+@MoveTag
 @KingTag
 public class KingSpec {
 
@@ -40,7 +42,7 @@ public class KingSpec {
         "BLACK, E4, F4, SHIFT_LEFT",
         "BLACK, G6, F6, SHIFT_RIGHT",
     })
-    public void king_moves_exactly_one_square_horizontally_vertically_or_diagonally(
+    public void a_king_moves_exactly_one_square_horizontally_vertically_or_diagonally(
         String color,
         String from,
         String to,
@@ -72,7 +74,7 @@ public class KingSpec {
         "BLACK, E4, SHIFT_LEFT",
         "BLACK, G6, SHIFT_RIGHT",
     })
-    public void king_can_not_move_beyond_an_obstructed_path(
+    public void a_king_can_not_move_beyond_an_obstructed_path(
         String color,
         String from,
         String direction
@@ -103,16 +105,16 @@ public class KingSpec {
         "BLACK, D5, C5",
         "BLACK, D5, C4",
     })
-    public void king_can_capture_an_opponent_piece_that_obstruct_its_way(
+    public void a_king_can_capture_an_opposing_piece_that_obstruct_its_way(
         String color,
         String from,
         String to
     ) {
         stage
             .given().a_$_king_in_$(color, from)
-            .and().an_opponent_piece_is_in_$(to)
+            .and().an_opposing_piece_is_in_$(to)
             .when().the_king_is_moved_to_$(to)
-            .and().the_king_captures_the_opponent_piece();
+            .and().the_king_captures_the_opposing_piece();
     }
 
 }

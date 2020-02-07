@@ -6,6 +6,7 @@ import com.tngtech.junit.dataprovider.DataProvider;
 import com.tngtech.junit.dataprovider.DataProviderExtension;
 import com.tngtech.junit.dataprovider.UseDataProviderExtension;
 import dev.ecattez.shahmat.domain.board.Rules;
+import dev.ecattez.shahmat.domain.board.move.MoveTag;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 })
 @Rules
 @PawnTag
+@MoveTag
 @EnPassantTag
 public class EnPassantSpec {
 
@@ -29,7 +31,7 @@ public class EnPassantSpec {
         "BLACK, C4, D, D3",
         "BLACK, C4, B, B3",
     })
-    public void pawn_can_immediately_capture_an_opponent_pawn_that_moved_forward_two_squares_on_a_neighbouring_file(
+    public void a_pawn_can_immediately_capture_an_opposing_pawn_that_moved_forward_two_squares_on_a_neighbouring_file(
         String color,
         String from,
         String opponentRank,
@@ -37,9 +39,9 @@ public class EnPassantSpec {
     ) {
         stage
             .given().a_$_pawn_in_$(color, from)
-            .and().an_opponent_pawn_that_moved_forward_two_squares_on_a_neighbouring_file(opponentRank)
-            .when().the_opponent_pawn_is_immediately_captured_en_passant()
-            .then().the_pawn_moves_behind_the_opponent_piece(endsTo);
+            .and().an_opposing_pawn_that_moved_forward_two_squares_on_a_neighbouring_file(opponentRank)
+            .when().the_opposing_pawn_is_immediately_captured_en_passant()
+            .then().the_pawn_moves_behind_the_opposing_piece(endsTo);
     }
 
     @TestTemplate
@@ -47,16 +49,16 @@ public class EnPassantSpec {
         "WHITE, C5, B",
         "BLACK, C4, D",
     })
-    public void pawn_can_not_capture_an_opponent_pawn_that_moved_forward_two_squares_on_a_neighbouring_file(
+    public void a_pawn_can_not_capture_an_opposing_pawn_that_moved_forward_two_squares_on_a_neighbouring_file(
         String color,
         String from,
         String opponentRank
     ) {
         stage
             .given().a_$_pawn_in_$(color, from)
-            .and().an_opponent_pawn_that_moved_forward_two_squares_on_a_neighbouring_file(opponentRank)
-            .and().an_other_opponent_piece_as_moved_since()
-            .when().the_opponent_pawn_is_captured_en_passant()
+            .and().an_opposing_pawn_that_moved_forward_two_squares_on_a_neighbouring_file(opponentRank)
+            .and().an_other_opposing_piece_as_moved_since()
+            .when().the_opposing_pawn_is_captured_en_passant()
             .then().the_capture_is_refused();
     }
 

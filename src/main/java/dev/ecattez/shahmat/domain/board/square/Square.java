@@ -213,7 +213,8 @@ public class Square {
 
     public final static class SquareIterator implements Iterator<Square> {
 
-        private static final Square LAST = new Square(Square.File.last(), Square.Rank.last());
+        public static final Square LAST = new Square(Square.File.last(), Square.Rank.last());
+
         private Square current;
 
         @Override

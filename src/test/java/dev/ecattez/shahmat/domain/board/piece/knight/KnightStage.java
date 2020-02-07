@@ -3,6 +3,7 @@ package dev.ecattez.shahmat.domain.board.piece.knight;
 import com.tngtech.jgiven.Stage;
 import com.tngtech.jgiven.annotation.AfterScenario;
 import com.tngtech.jgiven.annotation.BeforeStage;
+import dev.ecattez.shahmat.domain.board.BeforeAfterOutput;
 import dev.ecattez.shahmat.domain.board.BoardStringFormatter;
 import dev.ecattez.shahmat.domain.board.Direction;
 import dev.ecattez.shahmat.domain.board.piece.Piece;
@@ -11,7 +12,7 @@ import dev.ecattez.shahmat.domain.board.piece.PieceColor;
 import dev.ecattez.shahmat.domain.board.piece.PieceFactory;
 import dev.ecattez.shahmat.domain.board.piece.PieceType;
 import dev.ecattez.shahmat.domain.board.square.Square;
-import dev.ecattez.shahmat.domain.board.violation.ImpossibleToMove;
+import dev.ecattez.shahmat.domain.board.violation.PieceCanNotBeMoved;
 import dev.ecattez.shahmat.domain.board.violation.RulesViolation;
 import dev.ecattez.shahmat.domain.command.Move;
 import dev.ecattez.shahmat.domain.event.ChessEvent;
@@ -19,17 +20,13 @@ import dev.ecattez.shahmat.domain.event.PieceCaptured;
 import dev.ecattez.shahmat.domain.event.PieceMoved;
 import dev.ecattez.shahmat.domain.event.PiecePositioned;
 import dev.ecattez.shahmat.domain.event.TurnChanged;
-import dev.ecattez.shahmat.domain.game.BoardDecision;
 import dev.ecattez.shahmat.domain.game.ChessGame;
 import org.assertj.core.api.Assertions;
 import org.mockito.Mockito;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.mockito.Mockito.mock;
 
@@ -52,33 +49,16 @@ public class KnightStage extends Stage<KnightStage> {
         this.pieceFactory = PieceBox.getInstance();
         this.history = new LinkedList<>();
         this.returnedEvents = new LinkedList<>();
-        this.formatter = new BoardStringFormatter();
     }
 
     @AfterScenario
     public void after() {
-        System.out.println("Before command: " + knight.color());
-        System.out.println(
-            formatter.format(
-                BoardDecision.replay(history)
-            )
+        BeforeAfterOutput.display(
+            knight,
+            history,
+            returnedEvents,
+            violation
         );
-        System.out.println();
-
-        System.out.println("After command: " + knight.color());
-        System.out.println(
-            formatter.format(
-                BoardDecision.replay(
-                    Stream.of(history, returnedEvents)
-                        .flatMap(Collection::stream)
-                        .collect(Collectors.toList())
-                )
-            )
-        );
-        if (violation != null) {
-            System.out.println(violation.getMessage());
-        }
-        System.out.println();
     }
 
     public KnightStage a_$_knight_in_$(String color, String from) {
@@ -87,7 +67,7 @@ public class KnightStage extends Stage<KnightStage> {
             PieceType.KNIGHT,
             PieceColor.valueOf(color)
         );
-        this.history.addAll(
+        history.addAll(
             List.of(
                 new PiecePositioned(
                     knight,
@@ -115,7 +95,7 @@ public class KnightStage extends Stage<KnightStage> {
         return self();
     }
 
-    public KnightStage an_ally_piece_in_$(String allyLocation) {
+    public KnightStage an_allied_piece_in_$(String allyLocation) {
         this.to = new Square(allyLocation);
         this.opponentPiece = pieceFactory.createPiece(
             PieceType.PAWN,
@@ -130,7 +110,7 @@ public class KnightStage extends Stage<KnightStage> {
         return self();
     }
 
-    public KnightStage an_opponent_piece_is_in_$(String opponentLocation) {
+    public KnightStage an_opposing_piece_is_in_$(String opponentLocation) {
         this.to = new Square(opponentLocation);
         this.opponentPiece = pieceFactory.createPiece(
             PieceType.PAWN,
@@ -202,7 +182,7 @@ public class KnightStage extends Stage<KnightStage> {
         return self();
     }
 
-    public KnightStage the_knight_captures_the_opponent_piece() {
+    public KnightStage the_knight_captures_the_opposing_piece() {
         Assertions
             .assertThat(returnedEvents)
             .contains(
@@ -219,7 +199,7 @@ public class KnightStage extends Stage<KnightStage> {
     public KnightStage the_move_is_refused() {
         Assertions
             .assertThat(violation)
-            .isInstanceOf(ImpossibleToMove.class);
+            .isInstanceOf(PieceCanNotBeMoved.class);
         return self();
     }
 }

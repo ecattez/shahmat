@@ -6,6 +6,7 @@ import com.tngtech.junit.dataprovider.DataProvider;
 import com.tngtech.junit.dataprovider.DataProviderExtension;
 import com.tngtech.junit.dataprovider.UseDataProviderExtension;
 import dev.ecattez.shahmat.domain.board.Rules;
+import dev.ecattez.shahmat.domain.board.move.MoveTag;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
     UseDataProviderExtension.class
 })
 @Rules
+@MoveTag
 @RookTag
 public class RookSpec {
 
@@ -32,7 +34,7 @@ public class RookSpec {
         "BLACK, C4, 2, SHIFT_RIGHT, A4",
         "BLACK, A4, 4, BACKWARD, A8",
     })
-    public void rook_can_move_horizontally_and_vertically_while_it_is_not_obstructed(
+    public void a_rook_can_move_horizontally_and_vertically_while_it_is_not_obstructed(
         String color,
         String from,
         int times,
@@ -57,7 +59,7 @@ public class RookSpec {
         "BLACK, E4, C4, 2, SHIFT_RIGHT",
         "BLACK, A4, A6, 4, BACKWARD",
     })
-    public void rook_can_not_move_beyond_an_obstructed_path(
+    public void a_rook_can_not_move_beyond_an_obstructed_path(
         String color,
         String from,
         String obstructed,
@@ -82,16 +84,16 @@ public class RookSpec {
         "BLACK, E4, C4",
         "BLACK, A4, A6",
     })
-    public void rook_can_capture_an_opponent_piece_that_obstruct_its_way(
+    public void a_rook_can_capture_an_opposing_piece_that_obstruct_its_way(
         String color,
         String from,
         String to
     ) {
         stage
             .given().a_$_rook_in_$(color, from)
-            .and().an_opponent_piece_is_in_$(to)
+            .and().an_opposing_piece_is_in_$(to)
             .when().the_rook_is_moved_to_$(to)
-            .then().the_rook_captures_the_opponent_piece();
+            .then().the_rook_captures_the_opposing_piece();
     }
 
 }

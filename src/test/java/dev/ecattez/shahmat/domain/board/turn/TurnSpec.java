@@ -50,13 +50,13 @@ public class TurnSpec {
         "WHITE, BLACK",
         "BLACK, WHITE"
     })
-    public void a_player_can_not_move_its_opponent_piece(
+    public void a_player_can_not_move_its_opponent_s_piece(
         String color,
         String opponentColor
     ) {
         stage
             .given().a_ready_to_play_chess_game()
-            .and().$_is_playing(opponentColor)
+            .and().$_is_playing(color)
             .when().$_moves_a_$_piece(color, opponentColor)
             .then().the_move_is_refused();
     }

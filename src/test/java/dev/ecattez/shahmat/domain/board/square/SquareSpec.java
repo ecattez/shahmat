@@ -69,7 +69,7 @@ public class SquareSpec {
     }
 
     @Test
-    public void square_fails_when_file_is_missing() {
+    public void square_instanciation_fails_when_file_is_missing() {
         try {
             square = new Square(null, Square.Rank.ONE);
         } catch (RulesViolation e) {
@@ -82,7 +82,7 @@ public class SquareSpec {
     }
 
     @Test
-    public void square_fails_when_rank_is_missing() {
+    public void square_instanciation_fails_when_rank_is_missing() {
         try {
             square = new Square(Square.File.A, null);
         } catch (RulesViolation e) {
@@ -108,7 +108,7 @@ public class SquareSpec {
     }
 
     @Test
-    public void square_fails_when_rank_is_first() {
+    public void square_instanciation_fails_when_rank_is_first() {
         try {
             square = new Square("1a");
         } catch (RulesViolation e) {
@@ -203,6 +203,23 @@ public class SquareSpec {
                 Orientation.valueOf(orientation)
             );
         } catch (RulesViolation e) {
+            violation = e;
+        }
+
+        Assertions
+            .assertThat(violation)
+            .isInstanceOf(SquareOutsideOfBoard.class);
+    }
+
+    @Test
+    public void get_next_square_fails_when_outside_of_board() {
+        Square.SquareIterator iterator = new Square.SquareIterator();
+        while (iterator.hasNext()) {
+            iterator.next();
+        }
+        try {
+            iterator.next();
+        } catch (SquareOutsideOfBoard e) {
             violation = e;
         }
 

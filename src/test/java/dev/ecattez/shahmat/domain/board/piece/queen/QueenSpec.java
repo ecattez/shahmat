@@ -6,6 +6,7 @@ import com.tngtech.junit.dataprovider.DataProvider;
 import com.tngtech.junit.dataprovider.DataProviderExtension;
 import com.tngtech.junit.dataprovider.UseDataProviderExtension;
 import dev.ecattez.shahmat.domain.board.Rules;
+import dev.ecattez.shahmat.domain.board.move.MoveTag;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
     UseDataProviderExtension.class
 })
 @Rules
+@MoveTag
 @QueenTag
 public class QueenSpec {
 
@@ -40,7 +42,7 @@ public class QueenSpec {
         "BLACK, E4, 2, FORWARD_RIGHT, C2",
         "BLACK, C2, 4, BACKWARD_LEFT, G6",
     })
-    public void queen_can_move_in_any_direction_on_a_straight_or_diagonal_path(
+    public void a_queen_can_move_in_any_direction_on_a_straight_or_diagonal_path(
         String color,
         String from,
         int times,
@@ -73,7 +75,7 @@ public class QueenSpec {
         "BLACK, E5, G3, 3, FORWARD_LEFT",
         "BLACK, D5, B7, 2, BACKWARD_RIGHT",
     })
-    public void queen_can_not_move_beyond_an_obstructed_path(
+    public void a_queen_can_not_move_beyond_an_obstructed_path(
         String color,
         String from,
         String obstructed,
@@ -106,16 +108,16 @@ public class QueenSpec {
         "BLACK, C6, E8",
         "BLACK, H1, A8",
     })
-    public void queen_can_capture_an_opponent_piece_that_obstruct_its_way(
+    public void a_queen_can_capture_an_opposing_piece_that_obstruct_its_way(
         String color,
         String from,
         String to
     ) {
         stage
             .given().a_$_queen_in_$(color, from)
-            .and().an_opponent_piece_is_in_$(to)
+            .and().an_opposing_piece_is_in_$(to)
             .when().the_queen_is_moved_to_$(to)
-            .then().the_queen_captures_the_opponent_piece();
+            .then().the_queen_captures_the_opposing_piece();
     }
 
 }

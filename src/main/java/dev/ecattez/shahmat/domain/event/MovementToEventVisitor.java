@@ -5,42 +5,34 @@ import dev.ecattez.shahmat.domain.board.piece.move.EnPassant;
 import dev.ecattez.shahmat.domain.board.piece.move.MoveOnVacant;
 import dev.ecattez.shahmat.domain.board.piece.move.MovementVisitor;
 
-import java.util.List;
-
-public class MovementToEventVisitor implements MovementVisitor<List<ChessEvent>> {
+public class MovementToEventVisitor implements MovementVisitor<ChessMoveEvent> {
 
     @Override
-    public List<ChessEvent> visit(MoveOnVacant move) {
-        return List.of(
-            new PieceMoved(
-                move.piece,
-                move.from,
-                move.to
-            )
+    public ChessMoveEvent visit(MoveOnVacant move) {
+        return new PieceMoved(
+            move.piece,
+            move.from,
+            move.to
         );
     }
 
     @Override
-    public List<ChessEvent> visit(Capture move) {
-        return List.of(
-            new PieceCaptured(
-                move.captured,
-                move.to,
-                move.piece,
-                move.from
-            )
+    public ChessMoveEvent visit(Capture move) {
+        return new PieceCaptured(
+            move.captured,
+            move.to,
+            move.piece,
+            move.from
         );
     }
 
     @Override
-    public List<ChessEvent> visit(EnPassant move) {
-        return List.of(
-            new PieceCapturedEnPassant(
-                move.captured,
-                move.to,
-                move.piece,
-                move.from
-            )
+    public ChessMoveEvent visit(EnPassant move) {
+        return new PieceCapturedEnPassant(
+            move.captured,
+            move.to,
+            move.piece,
+            move.from
         );
     }
 

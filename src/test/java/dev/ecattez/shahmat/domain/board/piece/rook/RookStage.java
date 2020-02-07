@@ -3,7 +3,7 @@ package dev.ecattez.shahmat.domain.board.piece.rook;
 import com.tngtech.jgiven.Stage;
 import com.tngtech.jgiven.annotation.AfterScenario;
 import com.tngtech.jgiven.annotation.BeforeStage;
-import dev.ecattez.shahmat.domain.board.BoardStringFormatter;
+import dev.ecattez.shahmat.domain.board.BeforeAfterOutput;
 import dev.ecattez.shahmat.domain.board.Direction;
 import dev.ecattez.shahmat.domain.board.piece.Piece;
 import dev.ecattez.shahmat.domain.board.piece.PieceBox;
@@ -11,7 +11,7 @@ import dev.ecattez.shahmat.domain.board.piece.PieceColor;
 import dev.ecattez.shahmat.domain.board.piece.PieceFactory;
 import dev.ecattez.shahmat.domain.board.piece.PieceType;
 import dev.ecattez.shahmat.domain.board.square.Square;
-import dev.ecattez.shahmat.domain.board.violation.ImpossibleToMove;
+import dev.ecattez.shahmat.domain.board.violation.PieceCanNotBeMoved;
 import dev.ecattez.shahmat.domain.board.violation.RulesViolation;
 import dev.ecattez.shahmat.domain.command.Move;
 import dev.ecattez.shahmat.domain.event.ChessEvent;
@@ -19,17 +19,13 @@ import dev.ecattez.shahmat.domain.event.PieceCaptured;
 import dev.ecattez.shahmat.domain.event.PieceMoved;
 import dev.ecattez.shahmat.domain.event.PiecePositioned;
 import dev.ecattez.shahmat.domain.event.TurnChanged;
-import dev.ecattez.shahmat.domain.game.BoardDecision;
 import dev.ecattez.shahmat.domain.game.ChessGame;
 import org.assertj.core.api.Assertions;
 import org.mockito.Mockito;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.mockito.Mockito.mock;
 
@@ -44,40 +40,22 @@ public class RookStage extends Stage<RookStage> {
     private List<ChessEvent> returnedEvents;
     private List<ChessEvent> history;
     private RulesViolation violation;
-    private BoardStringFormatter formatter;
 
     @BeforeStage
     public void init() {
         this.pieceFactory = PieceBox.getInstance();
         this.history = new LinkedList<>();
         this.returnedEvents = new LinkedList<>();
-        this.formatter = new BoardStringFormatter();
     }
 
     @AfterScenario
     public void after() {
-        System.out.println("Before command: " + rook.color());
-        System.out.println(
-            formatter.format(
-                BoardDecision.replay(history)
-            )
+        BeforeAfterOutput.display(
+            rook,
+            history,
+            returnedEvents,
+            violation
         );
-        System.out.println();
-
-        System.out.println("After command: " + rook.color());
-        System.out.println(
-            formatter.format(
-                BoardDecision.replay(
-                    Stream.of(history, returnedEvents)
-                        .flatMap(Collection::stream)
-                        .collect(Collectors.toList())
-                )
-            )
-        );
-        if (violation != null) {
-            System.out.println(violation.getMessage());
-        }
-        System.out.println();
     }
 
     public RookStage a_$_rook_in_$(String color, String from) {
@@ -86,7 +64,7 @@ public class RookStage extends Stage<RookStage> {
             PieceType.ROOK,
             PieceColor.valueOf(color)
         );
-        this.history.addAll(
+        history.addAll(
             List.of(
                 new PiecePositioned(
                     rook,
@@ -119,7 +97,7 @@ public class RookStage extends Stage<RookStage> {
         return self();
     }
 
-    public RookStage an_opponent_piece_is_in_$(String opponentLocation) {
+    public RookStage an_opposing_piece_is_in_$(String opponentLocation) {
         this.to = new Square(opponentLocation);
         this.opponentPiece = pieceFactory.createPiece(
             PieceType.PAWN,
@@ -186,11 +164,11 @@ public class RookStage extends Stage<RookStage> {
     public RookStage the_move_is_refused() {
         Assertions
             .assertThat(violation)
-            .isInstanceOf(ImpossibleToMove.class);
+            .isInstanceOf(PieceCanNotBeMoved.class);
         return self();
     }
 
-    public RookStage the_rook_captures_the_opponent_piece() {
+    public RookStage the_rook_captures_the_opposing_piece() {
         Assertions
             .assertThat(returnedEvents)
             .contains(
