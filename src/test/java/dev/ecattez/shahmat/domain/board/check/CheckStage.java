@@ -17,11 +17,14 @@ import dev.ecattez.shahmat.domain.board.square.Square;
 import dev.ecattez.shahmat.domain.board.violation.PieceCanNotBeMoved;
 import dev.ecattez.shahmat.domain.board.violation.RulesViolation;
 import dev.ecattez.shahmat.domain.command.Move;
+import dev.ecattez.shahmat.domain.command.Promote;
 import dev.ecattez.shahmat.domain.event.ChessEvent;
 import dev.ecattez.shahmat.domain.event.KingChecked;
+import dev.ecattez.shahmat.domain.event.PawnPromoted;
 import dev.ecattez.shahmat.domain.event.PieceCaptured;
 import dev.ecattez.shahmat.domain.event.PieceMoved;
 import dev.ecattez.shahmat.domain.event.PiecePositioned;
+import dev.ecattez.shahmat.domain.event.PromotionProposed;
 import dev.ecattez.shahmat.domain.event.TurnChanged;
 import dev.ecattez.shahmat.domain.game.BoardDecision;
 import dev.ecattez.shahmat.domain.game.ChessGame;
@@ -51,6 +54,8 @@ public class CheckStage extends Stage<CheckStage> {
 
     private Piece movingPiece;
     private Square movingPieceLocation;
+
+    private PieceType promotionType;
 
     private PieceFactory pieceFactory;
     private List<ChessEvent> returnedEvents;
@@ -175,6 +180,30 @@ public class CheckStage extends Stage<CheckStage> {
         return self();
     }
 
+    public CheckStage an_opposing_pawn_in_the_other_side_of_the_board(@Hidden String promotionLocation) {
+        this.opponent = pieceFactory.createPiece(
+            PieceType.PAWN,
+            opponentColor
+        );
+
+        this.opponentLocation = new Square(promotionLocation);
+        this.to = new Square(promotionLocation);
+
+        history.addAll(
+            List.of(
+                new PiecePositioned(
+                    opponent,
+                    opponentLocation
+                ),
+                new PromotionProposed(
+                    opponentLocation
+                )
+            )
+        );
+
+        return self();
+    }
+
     public CheckStage the_opposing_piece_is_moved_to_$(String to) {
         this.to = new Square(to);
 
@@ -253,15 +282,39 @@ public class CheckStage extends Stage<CheckStage> {
         return self();
     }
 
+    public CheckStage the_opposing_pawn_is_promoted_to_$(String promotionType) {
+        this.promotionType = PieceType.valueOf(promotionType);
+
+        try {
+            returnedEvents = ChessGame.promote(
+                Collections.unmodifiableList(history),
+                new Promote(
+                    opponentLocation,
+                    this.promotionType
+                )
+            );
+        } catch (RulesViolation e) {
+            violation = e;
+        }
+        return self();
+    }
+
     public CheckStage the_king_is_in_check() {
         Assertions
             .assertThat(returnedEvents)
-            .contains(
+            .containsAnyOf(
                 new KingChecked(
                     new PieceMoved(
                         opponent,
                         opponentLocation,
                         to
+                    ),
+                    kingLocation
+                ),
+                new KingChecked(
+                    new PawnPromoted(
+                        opponentLocation,
+                        promotionType
                     ),
                     kingLocation
                 )

@@ -17,6 +17,8 @@ import dev.ecattez.shahmat.domain.event.ChessEvent;
 import dev.ecattez.shahmat.domain.event.ChessMoveEvent;
 import dev.ecattez.shahmat.domain.event.KingChecked;
 import dev.ecattez.shahmat.domain.event.MovementToEventVisitor;
+import dev.ecattez.shahmat.domain.event.PawnPromoted;
+import dev.ecattez.shahmat.domain.event.TurnChanged;
 
 import java.util.List;
 import java.util.Optional;
@@ -91,6 +93,25 @@ public class BoardDecision {
             );
     }
 
+    public static Optional<Square> evaluateCheck(Board board, PawnPromoted event) {
+        Board futureBoard = new Board(board);
+        futureBoard.apply(event);
+
+        Piece promotedTo = futureBoard.getPiece(event.location);
+        PieceColor kingColor = promotedTo.color().opposite();
+
+        return futureBoard
+            .findLocationOfKing(kingColor)
+            .filter(kingLocation ->
+                findMovementAwareOfCheck(
+                    futureBoard,
+                    event.location,
+                    kingLocation,
+                    promotedTo
+                ).isPresent()
+            );
+    }
+
     public static boolean willBeChecked(Board board, ChessMoveEvent event) {
         Board futureBoard = new Board(board);
         futureBoard.apply(event);
@@ -134,6 +155,22 @@ public class BoardDecision {
         }
 
         return events;
+    }
+
+    public static List<ChessEvent> promote(Board board, Square location, PieceType typeOfPromotion) throws RulesViolation {
+        PawnPromoted promoted = new PawnPromoted(
+            location,
+            typeOfPromotion
+        );
+
+        return List.of(
+            BoardDecision.evaluateCheck(board, promoted)
+                .<ChessEvent>map(kingLocation -> new KingChecked(promoted, kingLocation))
+                .orElse(promoted),
+            new TurnChanged(
+                BoardDecision.whoseNextTurnIs(board)
+            )
+        );
     }
 
     private static MovingStrategy getMovingStrategy(Piece piece) {

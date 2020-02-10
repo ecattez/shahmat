@@ -18,7 +18,6 @@ import dev.ecattez.shahmat.domain.command.Move;
 import dev.ecattez.shahmat.domain.command.Promote;
 import dev.ecattez.shahmat.domain.event.BoardInitialized;
 import dev.ecattez.shahmat.domain.event.ChessEvent;
-import dev.ecattez.shahmat.domain.event.PawnPromoted;
 import dev.ecattez.shahmat.domain.event.PromotionProposed;
 import dev.ecattez.shahmat.domain.event.TurnChanged;
 import dev.ecattez.shahmat.domain.game.init.GameInitialization;
@@ -113,15 +112,7 @@ public class ChessGame {
             throw new PromotionRefused(PromotionRefused.Reason.PIECE_CAN_NOT_BE_PROMOTED);
         }
 
-        return List.of(
-            new PawnPromoted(
-                location,
-                typeOfPromotion
-            ),
-            new TurnChanged(
-                BoardDecision.whoseNextTurnIs(board)
-            )
-        );
+        return BoardDecision.promote(board, location, typeOfPromotion);
     }
 
 }

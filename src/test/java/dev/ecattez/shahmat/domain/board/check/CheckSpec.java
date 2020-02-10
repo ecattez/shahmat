@@ -147,4 +147,23 @@ public class CheckSpec {
             .then().the_move_is_refused();
     }
 
+    @TestTemplate
+    @DataProvider(value = {
+        "E1, B1, ROOK",
+        "E1, B1, QUEEN",
+        "E2, F1, BISHOP",
+        "E2, G1, KNIGHT",
+    })
+    public void a_king_can_be_put_in_check_because_of__pawn_promotion(
+        String kingLocation,
+        String promotionLocation,
+        String promotionType
+    ) {
+        stage
+            .given().a_king_in_$(kingLocation)
+            .and().an_opposing_pawn_in_the_other_side_of_the_board(promotionLocation)
+            .when().the_opposing_pawn_is_promoted_to_$(promotionType)
+            .then().the_king_is_in_check();
+    }
+
 }

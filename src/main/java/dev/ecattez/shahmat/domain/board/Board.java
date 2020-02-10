@@ -9,7 +9,7 @@ import dev.ecattez.shahmat.domain.board.piece.pawn.EnPassantRules;
 import dev.ecattez.shahmat.domain.board.square.Square;
 import dev.ecattez.shahmat.domain.board.violation.NoPieceOnSquare;
 import dev.ecattez.shahmat.domain.event.BoardInitialized;
-import dev.ecattez.shahmat.domain.event.ChessMoveEvent;
+import dev.ecattez.shahmat.domain.event.ChessEvent;
 import dev.ecattez.shahmat.domain.event.EventListener;
 import dev.ecattez.shahmat.domain.event.KingChecked;
 import dev.ecattez.shahmat.domain.event.PawnPromoted;
@@ -189,7 +189,7 @@ public class Board extends EventListener {
     }
 
     public void apply(KingChecked event) {
-        ChessMoveEvent move = event.move;
+        ChessEvent move = event.event;
         apply(move);
 
         checkedLocation = event.kingLocation;
