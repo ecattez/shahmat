@@ -3,7 +3,7 @@ package dev.ecattez.shahmat.domain.board.piece.pawn;
 import com.tngtech.jgiven.Stage;
 import com.tngtech.jgiven.annotation.AfterScenario;
 import com.tngtech.jgiven.annotation.BeforeStage;
-import dev.ecattez.shahmat.domain.board.BoardStringFormatter;
+import dev.ecattez.shahmat.domain.board.BeforeAfterOutput;
 import dev.ecattez.shahmat.domain.board.Direction;
 import dev.ecattez.shahmat.domain.board.piece.Piece;
 import dev.ecattez.shahmat.domain.board.piece.PieceBox;
@@ -22,16 +22,12 @@ import dev.ecattez.shahmat.domain.event.PieceMoved;
 import dev.ecattez.shahmat.domain.event.PiecePositioned;
 import dev.ecattez.shahmat.domain.event.PromotionProposed;
 import dev.ecattez.shahmat.domain.event.TurnChanged;
-import dev.ecattez.shahmat.domain.game.BoardDecision;
 import dev.ecattez.shahmat.domain.game.ChessGame;
 import org.assertj.core.api.Assertions;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class PromotionStage extends Stage<PromotionStage> {
 
@@ -43,40 +39,22 @@ public class PromotionStage extends Stage<PromotionStage> {
     private List<ChessEvent> returnedEvents;
     private List<ChessEvent> history;
     private RulesViolation violation;
-    private BoardStringFormatter formatter;
 
     @BeforeStage
     public void init() {
         this.pieceFactory = PieceBox.getInstance();
         this.history = new LinkedList<>();
         this.returnedEvents = new LinkedList<>();
-        this.formatter = new BoardStringFormatter();
     }
 
     @AfterScenario
     public void after() {
-        System.out.println("Before command: " + pawn.color());
-        System.out.println(
-            formatter.format(
-                BoardDecision.replay(history)
-            )
+        BeforeAfterOutput.display(
+            pawn,
+            history,
+            returnedEvents,
+            violation
         );
-        System.out.println();
-
-        System.out.println("After command: " + pawn.color());
-        System.out.println(
-            formatter.format(
-                BoardDecision.replay(
-                    Stream.of(history, returnedEvents)
-                        .flatMap(Collection::stream)
-                        .collect(Collectors.toList())
-                )
-            )
-        );
-        if (violation != null) {
-            System.out.println(violation.getMessage());
-        }
-        System.out.println();
     }
 
     public PromotionStage a_$_pawn_in_$(String color, String from) {
@@ -85,7 +63,7 @@ public class PromotionStage extends Stage<PromotionStage> {
             PieceType.PAWN,
             PieceColor.valueOf(color)
         );
-        this.history.addAll(
+        history.addAll(
             List.of(
                 new PiecePositioned(
                     pawn,
@@ -105,7 +83,7 @@ public class PromotionStage extends Stage<PromotionStage> {
             PieceType.PAWN,
             PieceColor.valueOf("BLACK")
         );
-        this.history.addAll(
+        history.addAll(
             List.of(
                 new PieceMoved(
                     pawn,

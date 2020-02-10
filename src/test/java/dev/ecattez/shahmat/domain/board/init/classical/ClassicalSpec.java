@@ -6,6 +6,7 @@ import com.tngtech.junit.dataprovider.DataProviderExtension;
 import com.tngtech.junit.dataprovider.UseDataProviderExtension;
 import dev.ecattez.shahmat.domain.board.Rules;
 import dev.ecattez.shahmat.domain.board.init.BoardTag;
+import dev.ecattez.shahmat.domain.board.init.GameTag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -16,6 +17,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 })
 @Rules
 @BoardTag
+@GameTag
+@ClassicalTag
 public class ClassicalSpec {
 
     @ScenarioStage

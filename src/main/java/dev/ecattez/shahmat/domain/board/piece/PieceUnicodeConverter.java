@@ -13,16 +13,16 @@ public class PieceUnicodeConverter implements PieceColorVisitor<String> {
 
     @Override
     public String visitBlack() {
-        return piece.type().accept(blackPieceTypeUnicodeVisitor);
+        return piece.accept(blackPieceTypeUnicodeVisitor);
     }
 
     @Override
     public String visitWhite() {
-        return piece.type().accept(whitePieceTypeUnicodeVisitor);
+        return piece.accept(whitePieceTypeUnicodeVisitor);
     }
 
     public static String convert(Piece piece) {
-        return piece.color().accept(new PieceUnicodeConverter(piece));
+        return piece.accept(new PieceUnicodeConverter(piece));
     }
 
     private static class BlackPieceTypeUnicodeVisitor implements PieceTypeVisitor<String> {

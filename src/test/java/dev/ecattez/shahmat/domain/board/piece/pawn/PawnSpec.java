@@ -6,6 +6,7 @@ import com.tngtech.junit.dataprovider.DataProvider;
 import com.tngtech.junit.dataprovider.DataProviderExtension;
 import com.tngtech.junit.dataprovider.UseDataProviderExtension;
 import dev.ecattez.shahmat.domain.board.Rules;
+import dev.ecattez.shahmat.domain.board.move.MoveTag;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
     UseDataProviderExtension.class
 })
 @Rules
+@MoveTag
 @PawnTag
 public class PawnSpec {
 
@@ -26,7 +28,7 @@ public class PawnSpec {
         "WHITE, A2, A3",
         "BLACK, A7, A6",
     })
-    public void pawn_can_only_move_directly_forward_one_square(
+    public void a_pawn_can_only_move_directly_forward_one_square(
         String color,
         String from,
         String to
@@ -43,7 +45,7 @@ public class PawnSpec {
         "WHITE, A2, A3",
         "BLACK, A7, A6",
     })
-    public void pawn_is_stuck_when_the_square_is_not_vacant(
+    public void a_pawn_is_stuck_when_the_square_is_not_vacant(
         String color,
         String from,
         String to
@@ -74,7 +76,7 @@ public class PawnSpec {
         "BLACK, G7, G6, G5",
         "BLACK, H7, H6, H5",
     })
-    public void pawn_can_move_directly_forward_two_squares_on_their_first_move_only(
+    public void a_pawn_can_move_directly_forward_two_squares_on_their_first_move_only(
         String color,
         String from,
         String forward,
@@ -95,16 +97,16 @@ public class PawnSpec {
         "BLACK, B5, C4",
         "BLACK, B5, A4",
     })
-    public void pawn_can_move_diagonally_forward_when_capturing_an_opponent_piece(
+    public void a_pawn_can_move_diagonally_forward_when_capturing_an_opposing_piece(
         String color,
         String from,
         String opponentLocation
     ) {
         stage
             .given().a_$_pawn_in_$(color, from)
-            .and().an_opponent_piece_in_$(opponentLocation)
+            .and().an_opposing_piece_in_$(opponentLocation)
             .when().the_pawn_is_moved_to_$(opponentLocation)
-            .then().the_pawn_captures_the_opponent_piece();
+            .then().the_pawn_captures_the_opposing_piece();
     }
 
 }

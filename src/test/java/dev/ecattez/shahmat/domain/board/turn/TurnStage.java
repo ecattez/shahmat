@@ -35,7 +35,6 @@ public class TurnStage extends Stage<TurnStage> {
     private List<ChessEvent> history;
     private RulesViolation violation;
 
-    private PieceColor playerColor;
     private Square from;
     private Square promotionLocation;
 
@@ -75,7 +74,7 @@ public class TurnStage extends Stage<TurnStage> {
     }
 
     public TurnStage a_$_pawn_in_other_side_of_the_chess_board(String color) {
-        playerColor = PieceColor.valueOf(color);
+        PieceColor playerColor = PieceColor.valueOf(color);
 
         from = PieceColor.WHITE.equals(playerColor)
             ? new Square("a7")
@@ -99,7 +98,7 @@ public class TurnStage extends Stage<TurnStage> {
     }
 
     public TurnStage $_moves_one_of_its_piece(String currentPlayer) {
-        playerColor = PieceColor.valueOf(currentPlayer);
+        PieceColor playerColor = PieceColor.valueOf(currentPlayer);
         Piece piece = pieceFactory.createPiece(PieceType.PAWN, playerColor);
         Square from = new Square("a5");
 
@@ -128,8 +127,8 @@ public class TurnStage extends Stage<TurnStage> {
     }
 
     public TurnStage $_moves_a_$_piece(String color, String opponentColor) {
-        playerColor = PieceColor.valueOf(color);
-        Piece piece = pieceFactory.createPiece(PieceType.PAWN, playerColor);
+        PieceColor playerColor = PieceColor.valueOf(color);
+        Piece piece = pieceFactory.createPiece(PieceType.PAWN, PieceColor.valueOf(opponentColor));
         Square from = new Square("a5");
 
         history.addAll(

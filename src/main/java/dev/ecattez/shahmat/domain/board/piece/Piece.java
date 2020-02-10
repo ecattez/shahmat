@@ -77,4 +77,12 @@ public abstract class Piece implements Figurine, Typed, Colored, Oriented {
         return unicode();
     }
 
+    public <T> T accept(PieceTypeVisitor<T> visitor) {
+        return type.accept(visitor);
+    }
+
+    public <T> T accept(PieceColorVisitor<T> visitor) {
+        return color.accept(visitor);
+    }
+
 }

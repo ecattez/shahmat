@@ -6,7 +6,6 @@ import dev.ecattez.shahmat.domain.board.piece.PieceColor;
 import dev.ecattez.shahmat.domain.board.piece.PieceType;
 import dev.ecattez.shahmat.domain.board.square.Square;
 import dev.ecattez.shahmat.domain.board.violation.BoardAlreadyInitialized;
-import dev.ecattez.shahmat.domain.board.violation.ImpossibleToMove;
 import dev.ecattez.shahmat.domain.board.violation.InvalidMove;
 import dev.ecattez.shahmat.domain.board.violation.NoPieceOnSquare;
 import dev.ecattez.shahmat.domain.board.violation.PieceNotOwned;
@@ -19,8 +18,6 @@ import dev.ecattez.shahmat.domain.command.Move;
 import dev.ecattez.shahmat.domain.command.Promote;
 import dev.ecattez.shahmat.domain.event.BoardInitialized;
 import dev.ecattez.shahmat.domain.event.ChessEvent;
-import dev.ecattez.shahmat.domain.event.MovementToEventVisitor;
-import dev.ecattez.shahmat.domain.event.PawnPromoted;
 import dev.ecattez.shahmat.domain.event.PromotionProposed;
 import dev.ecattez.shahmat.domain.event.TurnChanged;
 import dev.ecattez.shahmat.domain.game.init.GameInitialization;
@@ -31,8 +28,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ChessGame {
-
-    private static final MovementToEventVisitor EVENTS_FROM_MOVEMENT = new MovementToEventVisitor();
 
     private static final GameInitialization GAME_INITIALIZATION = new GameInitialization();
 
@@ -87,15 +82,7 @@ public class ChessGame {
             throw new WrongPieceSelected(from);
         }
 
-        List<ChessEvent> events = BoardDecision.findMovement(board, from, to, pieceToMove)
-            .stream()
-            .map(move -> move.accept(EVENTS_FROM_MOVEMENT))
-            .flatMap(Collection::stream)
-            .collect(Collectors.toList());
-
-        if (events.isEmpty()) {
-            throw new ImpossibleToMove(pieceToMove, from, to);
-        }
+        List<ChessEvent> events = BoardDecision.move(board, from, to, pieceToMove);
 
         events.add(
             BoardDecision.canBePromoted(to, pieceToMove)
@@ -125,15 +112,7 @@ public class ChessGame {
             throw new PromotionRefused(PromotionRefused.Reason.PIECE_CAN_NOT_BE_PROMOTED);
         }
 
-        return List.of(
-            new PawnPromoted(
-                location,
-                typeOfPromotion
-            ),
-            new TurnChanged(
-                BoardDecision.whoseNextTurnIs(board)
-            )
-        );
+        return BoardDecision.promote(board, location, typeOfPromotion);
     }
 
 }

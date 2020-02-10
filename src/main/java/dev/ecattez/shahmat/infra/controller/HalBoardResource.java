@@ -5,7 +5,6 @@ import dev.ecattez.shahmat.domain.board.piece.Piece;
 import dev.ecattez.shahmat.domain.board.piece.PieceType;
 import dev.ecattez.shahmat.domain.board.piece.move.Movement;
 import dev.ecattez.shahmat.domain.board.square.Square;
-import dev.ecattez.shahmat.domain.board.violation.RuleNotImplemented;
 import dev.ecattez.shahmat.domain.board.violation.RulesViolation;
 import dev.ecattez.shahmat.domain.command.InitBoard;
 import dev.ecattez.shahmat.domain.command.Move;
@@ -25,7 +24,6 @@ import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.LinkRelation;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -271,15 +269,12 @@ public class HalBoardResource {
             return Collections.emptyList();
         }
 
-        try {
-            return BoardDecision.getMovements(board, occupied, piece)
-                .stream()
-                .map(Movement::to)
-                .map(Square::toString)
-                .collect(Collectors.toList());
-        } catch (RuleNotImplemented e) {
-            return new LinkedList<>();
-        }
+        return BoardDecision.getMovementsAwareOfCheck(board, occupied, piece)
+            .stream()
+            .map(Movement::to)
+            .map(Square::toString)
+            .collect(Collectors.toList());
+
     }
 
     public static Link getBoardLink(LinkRelation rel, String boardId) {
