@@ -6,11 +6,11 @@ import java.util.Objects;
 
 public class KingChecked implements ChessEvent {
 
-    public final ChessEvent event;
+    public final ChessEvent cause;
     public final Square kingLocation;
 
-    public KingChecked(ChessEvent event, Square kingLocation) {
-        this.event = event;
+    public KingChecked(ChessEvent move, Square kingLocation) {
+        this.cause = move;
         this.kingLocation = kingLocation;
     }
 
@@ -19,18 +19,18 @@ public class KingChecked implements ChessEvent {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         KingChecked that = (KingChecked) o;
-        return Objects.equals(event, that.event) &&
+        return Objects.equals(cause, that.cause) &&
             Objects.equals(kingLocation, that.kingLocation);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(event, kingLocation);
+        return Objects.hash(cause, kingLocation);
     }
 
     @Override
     public String toString() {
-        return event.toString() + "+";
+        return cause + "+";
     }
 
 }

@@ -12,6 +12,7 @@ import dev.ecattez.shahmat.domain.event.BoardInitialized;
 import dev.ecattez.shahmat.domain.event.ChessEvent;
 import dev.ecattez.shahmat.domain.event.EventListener;
 import dev.ecattez.shahmat.domain.event.KingChecked;
+import dev.ecattez.shahmat.domain.event.KingCheckmated;
 import dev.ecattez.shahmat.domain.event.PawnPromoted;
 import dev.ecattez.shahmat.domain.event.PieceCaptured;
 import dev.ecattez.shahmat.domain.event.PieceCapturedEnPassant;
@@ -33,6 +34,8 @@ public class Board extends EventListener {
     private Square promotionLocation;
     private Square checkedLocation;
     private PieceColor turnOf;
+    private boolean over;
+    private PieceColor winner;
 
     public Board() {
         this.piecePerSquare = new HashMap<>();
@@ -56,6 +59,7 @@ public class Board extends EventListener {
         onEvent(PieceCaptured.class, this::apply);
         onEvent(PieceMoved.class, this::apply);
         onEvent(KingChecked.class, this::apply);
+        onEvent(KingCheckmated.class, this::apply);
         onEvent(PromotionProposed.class, this::apply);
         onEvent(PawnPromoted.class, this::apply);
         onEvent(TurnChanged.class, this::apply);
@@ -98,6 +102,17 @@ public class Board extends EventListener {
             ));
     }
 
+    public Map<Square, Piece> getPieces(PieceColor color) {
+        return piecePerSquare
+            .entrySet()
+            .stream()
+            .filter(entry -> entry.getValue().isOfColor(color))
+            .collect(Collectors.toMap(
+                Map.Entry::getKey,
+                Map.Entry::getValue
+            ));
+    }
+
     public boolean isPromoting() {
         return promotionLocation != null;
     }
@@ -112,6 +127,14 @@ public class Board extends EventListener {
 
     public boolean isPlaying() {
         return playing;
+    }
+
+    public boolean isOver() {
+        return over;
+    }
+
+    public Optional<PieceColor> findWinner() {
+        return Optional.ofNullable(winner);
     }
 
     public boolean hasOpponent(Square location, Piece piece) {
@@ -189,10 +212,19 @@ public class Board extends EventListener {
     }
 
     public void apply(KingChecked event) {
-        ChessEvent move = event.event;
+        ChessEvent move = event.cause;
         apply(move);
 
         checkedLocation = event.kingLocation;
+    }
+
+    public void apply(KingCheckmated event) {
+        ChessEvent move = event.cause;
+        apply(move);
+
+        checkedLocation = event.kingLocation;
+        over = true;
+        winner = getPiece(event.kingLocation).color().opposite();
     }
 
     public void apply(PromotionProposed event) {
