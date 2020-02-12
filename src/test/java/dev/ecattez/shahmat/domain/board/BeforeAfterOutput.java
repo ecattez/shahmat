@@ -3,10 +3,7 @@ package dev.ecattez.shahmat.domain.board;
 import dev.ecattez.shahmat.domain.event.ChessEvent;
 import dev.ecattez.shahmat.domain.game.BoardDecision;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class BeforeAfterOutput {
 
@@ -24,16 +21,14 @@ public class BeforeAfterOutput {
         System.out.println("After command: " + subject);
         System.out.println(
             formatter.format(
-                BoardDecision.replay(
-                    Stream.of(history, returnedEvents)
-                        .flatMap(Collection::stream)
-                        .collect(Collectors.toList())
-                )
+                BoardDecision.replay(history, returnedEvents)
             )
         );
         if (violation != null) {
             System.out.println(violation.getMessage());
         }
+        history
+            .forEach(System.out::println);
         returnedEvents
             .forEach(System.out::println);
         System.out.println();

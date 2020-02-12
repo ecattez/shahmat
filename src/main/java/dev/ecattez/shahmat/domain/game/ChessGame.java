@@ -23,6 +23,7 @@ import dev.ecattez.shahmat.domain.event.TurnChanged;
 import dev.ecattez.shahmat.domain.game.init.GameInitialization;
 
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -82,17 +83,18 @@ public class ChessGame {
             throw new WrongPieceSelected(from);
         }
 
-        List<ChessEvent> events = BoardDecision.move(board, from, to, pieceToMove);
+        ChessEvent move = BoardDecision.move(board, from, to, pieceToMove);
+        Board futureBoard = BoardDecision.replay(history, move);
 
-        events.add(
-            BoardDecision.canBePromoted(to, pieceToMove)
-                ? new PromotionProposed(to)
-                : new TurnChanged(
-                    BoardDecision.whoseNextTurnIs(board)
-                )
-        );
+        List<ChessEvent> returnedEvents = new LinkedList<>();
+        returnedEvents.add(move);
 
-        return events;
+        if (BoardDecision.canBePromoted(to, pieceToMove)) {
+            returnedEvents.add(new PromotionProposed(to));
+        } else if (!futureBoard.isOver()) {
+            returnedEvents.add(new TurnChanged(BoardDecision.whoseNextTurnIs(board)));
+        }
+        return returnedEvents;
     }
 
     public static List<ChessEvent> promote(
@@ -112,7 +114,16 @@ public class ChessGame {
             throw new PromotionRefused(PromotionRefused.Reason.PIECE_CAN_NOT_BE_PROMOTED);
         }
 
-        return BoardDecision.promote(board, location, typeOfPromotion);
+        return List.of(
+            BoardDecision.promote(
+                board,
+                location,
+                typeOfPromotion
+            ),
+            new TurnChanged(
+                BoardDecision.whoseNextTurnIs(board)
+            )
+        );
     }
 
 }
