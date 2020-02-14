@@ -5,16 +5,21 @@ import dev.ecattez.shahmat.domain.board.square.Square;
 
 import java.util.Objects;
 
-public class MoveOnVacant implements Movement {
+public class StandardMove implements Movement {
 
-    public final Piece piece;
-    public final Square from;
-    public final Square to;
+    private final Piece piece;
+    private final Square from;
+    private final Square to;
 
-    public MoveOnVacant(Piece piece, Square from, Square to) {
+    public StandardMove(Piece piece, Square from, Square to) {
         this.piece = piece;
         this.from = from;
         this.to = to;
+    }
+
+    @Override
+    public Piece piece() {
+        return piece;
     }
 
     @Override
@@ -31,7 +36,7 @@ public class MoveOnVacant implements Movement {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        MoveOnVacant that = (MoveOnVacant) o;
+        StandardMove that = (StandardMove) o;
         return Objects.equals(piece, that.piece) &&
             Objects.equals(from, that.from) &&
             Objects.equals(to, that.to);

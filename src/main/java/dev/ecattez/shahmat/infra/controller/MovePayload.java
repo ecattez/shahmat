@@ -2,14 +2,18 @@ package dev.ecattez.shahmat.infra.controller;
 
 import dev.ecattez.shahmat.domain.board.square.Square;
 
+import javax.annotation.Nullable;
 import javax.validation.constraints.Pattern;
 
 public class MovePayload {
 
+    // todo: should be a valid PieceType
     private String type;
     private String to;
+    // todo: should be null or a valid PieceType
+    @Nullable
+    private String promotedTo;
 
-    // todo: should be a good PieceType
     public String getType() {
         return type;
     }
@@ -25,5 +29,13 @@ public class MovePayload {
 
     public void setTo(String to) {
         this.to = to;
+    }
+
+    public String getPromotedTo() {
+        return promotedTo;
+    }
+
+    public void setPromotedTo(String promotedTo) {
+        this.promotedTo = promotedTo;
     }
 }

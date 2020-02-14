@@ -3,22 +3,17 @@ package dev.ecattez.shahmat.domain.game;
 import dev.ecattez.shahmat.domain.board.Board;
 import dev.ecattez.shahmat.domain.board.piece.Piece;
 import dev.ecattez.shahmat.domain.board.piece.PieceColor;
-import dev.ecattez.shahmat.domain.board.piece.PieceType;
 import dev.ecattez.shahmat.domain.board.square.Square;
 import dev.ecattez.shahmat.domain.board.violation.BoardAlreadyInitialized;
 import dev.ecattez.shahmat.domain.board.violation.InvalidMove;
 import dev.ecattez.shahmat.domain.board.violation.NoPieceOnSquare;
 import dev.ecattez.shahmat.domain.board.violation.PieceNotOwned;
-import dev.ecattez.shahmat.domain.board.violation.PromotionMustBeDone;
-import dev.ecattez.shahmat.domain.board.violation.PromotionRefused;
 import dev.ecattez.shahmat.domain.board.violation.RulesViolation;
 import dev.ecattez.shahmat.domain.board.violation.WrongPieceSelected;
 import dev.ecattez.shahmat.domain.command.InitBoard;
 import dev.ecattez.shahmat.domain.command.Move;
-import dev.ecattez.shahmat.domain.command.Promote;
 import dev.ecattez.shahmat.domain.event.BoardInitialized;
 import dev.ecattez.shahmat.domain.event.ChessEvent;
-import dev.ecattez.shahmat.domain.event.PromotionProposed;
 import dev.ecattez.shahmat.domain.event.TurnChanged;
 import dev.ecattez.shahmat.domain.game.init.GameInitialization;
 
@@ -67,15 +62,12 @@ public class ChessGame {
 
         Board board = BoardDecision.replay(history);
 
-        if (board.isPromoting()) {
-            throw new PromotionMustBeDone();
-        }
-
         if (board.isVacant(from)) {
             throw new NoPieceOnSquare(from);
         }
 
         Piece pieceToMove = board.getPiece(from);
+
         if (!BoardDecision.isOwnedByCurrentPlayer(board, pieceToMove)) {
             throw new PieceNotOwned(from);
         }
@@ -83,47 +75,17 @@ public class ChessGame {
             throw new WrongPieceSelected(from);
         }
 
-        ChessEvent move = BoardDecision.move(board, from, to, pieceToMove);
-        Board futureBoard = BoardDecision.replay(history, move);
+        ChessEvent move = BoardDecision.move(board, from, to, pieceToMove, command.promotedTo);
 
         List<ChessEvent> returnedEvents = new LinkedList<>();
         returnedEvents.add(move);
 
-        if (BoardDecision.canBePromoted(to, pieceToMove)) {
-            returnedEvents.add(new PromotionProposed(to));
-        } else if (!futureBoard.isOver()) {
+        Board futureBoard = BoardDecision.replay(history, move);
+        if (!futureBoard.isOver()) {
             returnedEvents.add(new TurnChanged(BoardDecision.whoseNextTurnIs(board)));
         }
+
         return returnedEvents;
-    }
-
-    public static List<ChessEvent> promote(
-        List<ChessEvent> history,
-        Promote command
-    ) throws RulesViolation {
-        PieceType typeOfPromotion = command.typeOfPromotion;
-
-        if (!BoardDecision.canPromote(typeOfPromotion)) {
-            throw new PromotionRefused(PromotionRefused.Reason.PIECE_CAN_NOT_PROMOTE);
-        }
-
-        Board board = BoardDecision.replay(history);
-        Square location = command.location;
-
-        if (!board.isPromotingIn(location)) {
-            throw new PromotionRefused(PromotionRefused.Reason.PIECE_CAN_NOT_BE_PROMOTED);
-        }
-
-        return List.of(
-            BoardDecision.promote(
-                board,
-                location,
-                typeOfPromotion
-            ),
-            new TurnChanged(
-                BoardDecision.whoseNextTurnIs(board)
-            )
-        );
     }
 
 }

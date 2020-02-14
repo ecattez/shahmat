@@ -5,168 +5,149 @@ import dev.ecattez.shahmat.domain.board.DirectionVisitor;
 import dev.ecattez.shahmat.domain.board.OrientationVisitor;
 
 import java.util.Optional;
+import java.util.function.Function;
 
-public class SquareNeighborhoodVisitor implements OrientationVisitor<Optional<Square>> {
+public class SquareNeighborhoodVisitor implements OrientationVisitor<Function<Direction, Function<Square, Optional<Square>>>> {
 
-    // todo: maybe try to extract direction ?
-    private final WhiteDirectionVisitor whiteDirectionVisitor = new WhiteDirectionVisitor();
-    private final BlackDirectionVisitor blackDirectionVisitor = new BlackDirectionVisitor();
+    private static final WhiteDirectionVisitor WHITE_DIRECTION_VISITOR = new WhiteDirectionVisitor();
+    private static final BlackDirectionVisitor BLACK_DIRECTION_VISITOR = new BlackDirectionVisitor();
+    private static SquareNeighborhoodVisitor instance;
 
-    private Direction direction;
-    private Square.File file;
-    private Square.Rank rank;
+    public static SquareNeighborhoodVisitor getInstance() {
+        if (instance == null) {
+            instance = new SquareNeighborhoodVisitor();
+        }
+        return instance;
+    }
 
-    public SquareNeighborhoodVisitor(
-        Direction direction,
-        Square location
-    ) {
-        this.direction = direction;
-        this.file = location.file;
-        this.rank = location.rank;
+    private SquareNeighborhoodVisitor() {}
+
+    @Override
+    public Function<Direction, Function<Square, Optional<Square>>> visitUpward() {
+        return (direction) -> direction.accept(WHITE_DIRECTION_VISITOR);
     }
 
     @Override
-    public Optional<Square> visitUpward() {
-        return direction.accept(whiteDirectionVisitor);
+    public Function<Direction, Function<Square, Optional<Square>>> visitDownward() {
+        return (direction) -> direction.accept(BLACK_DIRECTION_VISITOR);
     }
 
-    @Override
-    public Optional<Square> visitDownward() {
-        return direction.accept(blackDirectionVisitor);
-    }
-
-    private final class BlackDirectionVisitor implements DirectionVisitor<Optional<Square>> {
+    private static final class BlackDirectionVisitor implements DirectionVisitor<Function<Square, Optional<Square>>> {
 
         @Override
-        public Optional<Square> visitForward() {
-            if (rank.isFirst()) {
-                return Optional.empty();
-            }
-            return Optional.of(new Square(file, rank.previous()));
+        public Function<Square, Optional<Square>> visitForward() {
+            return (from) -> Optional.of(from)
+                .filter(current -> !current.rank.isFirst())
+                .map(current -> new Square(current.file, current.rank.previous()));
         }
 
         @Override
-        public Optional<Square> visitForwardLeft() {
-            if (rank.isFirst() || file.isLast()) {
-                return Optional.empty();
-            }
-            return Optional.of(new Square(file.next(), rank.previous()));
+        public Function<Square, Optional<Square>> visitForwardLeft() {
+            return (from) -> Optional.of(from)
+                .filter(current -> !current.rank.isFirst() && !current.file.isLast())
+                .map(current -> new Square(current.file.next(), current.rank.previous()));
         }
 
         @Override
-        public Optional<Square> visitForwardRight() {
-            if (rank.isFirst() || file.isFirst()) {
-                return Optional.empty();
-            }
-            return Optional.of(new Square(file.previous(), rank.previous()));
+        public Function<Square, Optional<Square>> visitForwardRight() {
+            return (from) -> Optional.of(from)
+                .filter(current -> !current.rank.isFirst() && !current.file.isFirst())
+                .map(current -> new Square(current.file.previous(), current.rank.previous()));
         }
 
         @Override
-        public Optional<Square> visitShiftLeft() {
-            if (file.isLast()) {
-                return Optional.empty();
-            }
-            return Optional.of(new Square(file.next(), rank));
+        public Function<Square, Optional<Square>> visitShiftLeft() {
+            return (from) -> Optional.of(from)
+                .filter(current -> !current.file.isLast())
+                .map(current -> new Square(current.file.next(), current.rank));
         }
 
         @Override
-        public Optional<Square> visitShiftRight() {
-            if (file.isFirst()) {
-                return Optional.empty();
-            }
-            return Optional.of(new Square(file.previous(), rank));
+        public Function<Square, Optional<Square>> visitShiftRight() {
+            return (from) -> Optional.of(from)
+                .filter(current -> !current.file.isFirst())
+                .map(current -> new Square(current.file.previous(), current.rank));
         }
 
         @Override
-        public Optional<Square> visitBackward() {
-            if (rank.isLast()) {
-                return Optional.empty();
-            }
-            return Optional.of(new Square(file, rank.next()));
+        public Function<Square, Optional<Square>> visitBackward() {
+            return (from) -> Optional.of(from)
+                .filter(current -> !current.rank.isLast())
+                .map(current -> new Square(current.file, current.rank.next()));
         }
 
         @Override
-        public Optional<Square> visitBackwardLeft() {
-            if (rank.isLast() || file.isLast()) {
-                return Optional.empty();
-            }
-            return Optional.of(new Square(file.next(), rank.next()));
+        public Function<Square, Optional<Square>> visitBackwardLeft() {
+            return (from) -> Optional.of(from)
+                .filter(current -> !current.rank.isLast() && !current.file.isLast())
+                .map(current -> new Square(current.file.next(), current.rank.next()));
         }
 
         @Override
-        public Optional<Square> visitBackwardRight() {
-            if (rank.isLast() || file.isFirst()) {
-                return Optional.empty();
-            }
-            return Optional.of(new Square(file.previous(), rank.next()));
+        public Function<Square, Optional<Square>> visitBackwardRight() {
+            return (from) -> Optional.of(from)
+                .filter(current -> !current.rank.isLast() && !current.file.isFirst())
+                .map(current -> new Square(current.file.previous(), current.rank.next()));
         }
 
     }
 
-    private final class WhiteDirectionVisitor implements DirectionVisitor<Optional<Square>> {
+    private static final class WhiteDirectionVisitor implements DirectionVisitor<Function<Square, Optional<Square>>> {
 
         @Override
-        public Optional<Square> visitForward() {
-            if (rank.isLast()) {
-                return Optional.empty();
-            }
-            return Optional.of(new Square(file, rank.next()));
+        public Function<Square, Optional<Square>> visitForward() {
+            return (from) -> Optional.of(from)
+              .filter(current -> !current.rank.isLast())
+              .map(current -> new Square(current.file, current.rank.next()));
         }
 
         @Override
-        public Optional<Square> visitForwardLeft() {
-            if (rank.isLast() || file.isFirst()) {
-                return Optional.empty();
-            }
-            return Optional.of(new Square(file.previous(), rank.next()));
+        public Function<Square, Optional<Square>> visitForwardLeft() {
+            return (from) -> Optional.of(from)
+                .filter(current -> !current.rank.isLast() && !current.file.isFirst())
+                .map(current -> new Square(current.file.previous(), current.rank.next()));
         }
 
         @Override
-        public Optional<Square> visitForwardRight() {
-            if (rank.isLast() || file.isLast()) {
-                return Optional.empty();
-            }
-            return Optional.of(new Square(file.next(), rank.next()));
+        public Function<Square, Optional<Square>> visitForwardRight() {
+            return (from) -> Optional.of(from)
+                .filter(current -> !current.rank.isLast() && !current.file.isLast())
+                .map(current -> new Square(current.file.next(), current.rank.next()));
         }
 
         @Override
-        public Optional<Square> visitShiftLeft() {
-            if (file.isFirst()) {
-                return Optional.empty();
-            }
-            return Optional.of(new Square(file.previous(), rank));
+        public Function<Square, Optional<Square>> visitShiftLeft() {
+            return (from) -> Optional.of(from)
+                .filter(current -> !current.file.isFirst())
+                .map(current -> new Square(current.file.previous(), current.rank));
         }
 
         @Override
-        public Optional<Square> visitShiftRight() {
-            if (file.isLast()) {
-                return Optional.empty();
-            }
-            return Optional.of(new Square(file.next(), rank));
+        public Function<Square, Optional<Square>> visitShiftRight() {
+            return (from) -> Optional.of(from)
+                .filter(current -> !current.file.isLast())
+                .map(current -> new Square(current.file.next(), current.rank));
         }
 
         @Override
-        public Optional<Square> visitBackward() {
-            if (rank.isFirst()) {
-                return Optional.empty();
-            }
-            return Optional.of(new Square(file, rank.previous()));
+        public Function<Square, Optional<Square>> visitBackward() {
+            return (from) -> Optional.of(from)
+                .filter(current -> !current.rank.isFirst())
+                .map(current -> new Square(current.file, current.rank.previous()));
         }
 
         @Override
-        public Optional<Square> visitBackwardLeft() {
-            if (rank.isFirst() || file.isFirst()) {
-                return Optional.empty();
-            }
-            return Optional.of(new Square(file.previous(), rank.previous()));
+        public Function<Square, Optional<Square>> visitBackwardLeft() {
+            return (from) -> Optional.of(from)
+                .filter(current -> !current.rank.isFirst() && !current.file.isFirst())
+                .map(current -> new Square(current.file.previous(), current.rank.previous()));
         }
 
         @Override
-        public Optional<Square> visitBackwardRight() {
-            if (rank.isFirst() || file.isLast()) {
-                return Optional.empty();
-            }
-            return Optional.of(new Square(file.next(), rank.previous()));
+        public Function<Square, Optional<Square>> visitBackwardRight() {
+            return (from) -> Optional.of(from)
+                .filter(current -> !current.rank.isFirst() && !current.file.isLast())
+                .map(current -> new Square(current.file.next(), current.rank.previous()));
         }
 
     }

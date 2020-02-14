@@ -13,13 +13,11 @@ import dev.ecattez.shahmat.domain.board.piece.PieceType;
 import dev.ecattez.shahmat.domain.board.square.Square;
 import dev.ecattez.shahmat.domain.board.violation.RulesViolation;
 import dev.ecattez.shahmat.domain.command.Move;
-import dev.ecattez.shahmat.domain.command.Promote;
 import dev.ecattez.shahmat.domain.event.ChessEvent;
 import dev.ecattez.shahmat.domain.event.KingCheckmated;
 import dev.ecattez.shahmat.domain.event.PawnPromoted;
 import dev.ecattez.shahmat.domain.event.PieceMoved;
 import dev.ecattez.shahmat.domain.event.PiecePositioned;
-import dev.ecattez.shahmat.domain.event.PromotionProposed;
 import dev.ecattez.shahmat.domain.event.TurnChanged;
 import dev.ecattez.shahmat.domain.game.BoardDecision;
 import dev.ecattez.shahmat.domain.game.ChessGame;
@@ -36,6 +34,8 @@ public class CheckmateStage extends Stage<CheckmateStage> {
 
     private Piece king;
     private Square kingLocation;
+
+    private Piece promotion;
 
     private PieceFactory pieceFactory;
     private List<ChessEvent> returnedEvents;
@@ -117,6 +117,11 @@ public class CheckmateStage extends Stage<CheckmateStage> {
 
         kingLocation = new Square("E1");
 
+        promotion = pieceFactory.createPiece(
+            PieceType.QUEEN,
+            opponentColor
+        );
+
         history.addAll(
             List.of(
                 new PiecePositioned(
@@ -137,17 +142,6 @@ public class CheckmateStage extends Stage<CheckmateStage> {
                     ),
                     new Square("H2")
                 ),
-                new PieceMoved(
-                    pieceFactory.createPiece(
-                        PieceType.PAWN,
-                        opponentColor
-                    ),
-                    new Square("A2"),
-                    new Square("A1")
-                ),
-                new PromotionProposed(
-                    new Square("A1")
-                ),
                 new TurnChanged(
                     opponentColor
                 )
@@ -155,11 +149,13 @@ public class CheckmateStage extends Stage<CheckmateStage> {
         );
 
         try {
-            returnedEvents = ChessGame.promote(
+            returnedEvents = ChessGame.move(
                 Collections.unmodifiableList(history),
-                new Promote(
+                new Move(
+                    PieceType.PAWN,
+                    new Square("A2"),
                     new Square("A1"),
-                    PieceType.QUEEN
+                    promotion.type()
                 )
             );
         } catch (RulesViolation e) {
@@ -198,8 +194,15 @@ public class CheckmateStage extends Stage<CheckmateStage> {
                 ),
                 new KingCheckmated(
                     new PawnPromoted(
-                        new Square("A1"),
-                        PieceType.QUEEN
+                        new PieceMoved(
+                            pieceFactory.createPiece(
+                                PieceType.PAWN,
+                                opponentColor
+                            ),
+                            new Square("A2"),
+                            new Square("A1")
+                        ),
+                        promotion
                     ),
                     kingLocation
                 )

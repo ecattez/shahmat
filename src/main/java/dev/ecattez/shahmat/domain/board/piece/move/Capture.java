@@ -5,13 +5,17 @@ import dev.ecattez.shahmat.domain.board.square.Square;
 
 import java.util.Objects;
 
-public class Capture extends MoveOnVacant {
+public class Capture extends StandardMove {
 
-    public final Piece captured;
+    private final Piece captured;
 
     public Capture(Piece capturedBy, Square from, Square to, Piece captured) {
         super(capturedBy, from, to);
         this.captured = captured;
+    }
+
+    public Piece captured() {
+        return captured;
     }
 
     @Override

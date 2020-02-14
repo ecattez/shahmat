@@ -6,25 +6,24 @@ import com.tngtech.jgiven.annotation.BeforeStage;
 import com.tngtech.jgiven.annotation.Hidden;
 import dev.ecattez.shahmat.domain.board.BeforeAfterOutput;
 import dev.ecattez.shahmat.domain.board.Board;
+import dev.ecattez.shahmat.domain.board.Direction;
 import dev.ecattez.shahmat.domain.board.piece.Piece;
 import dev.ecattez.shahmat.domain.board.piece.PieceBox;
 import dev.ecattez.shahmat.domain.board.piece.PieceColor;
 import dev.ecattez.shahmat.domain.board.piece.PieceFactory;
 import dev.ecattez.shahmat.domain.board.piece.PieceType;
 import dev.ecattez.shahmat.domain.board.piece.move.Capture;
-import dev.ecattez.shahmat.domain.board.piece.move.MoveOnVacant;
+import dev.ecattez.shahmat.domain.board.piece.move.StandardMove;
 import dev.ecattez.shahmat.domain.board.square.Square;
 import dev.ecattez.shahmat.domain.board.violation.PieceCanNotBeMoved;
 import dev.ecattez.shahmat.domain.board.violation.RulesViolation;
 import dev.ecattez.shahmat.domain.command.Move;
-import dev.ecattez.shahmat.domain.command.Promote;
 import dev.ecattez.shahmat.domain.event.ChessEvent;
 import dev.ecattez.shahmat.domain.event.KingChecked;
 import dev.ecattez.shahmat.domain.event.PawnPromoted;
 import dev.ecattez.shahmat.domain.event.PieceCaptured;
 import dev.ecattez.shahmat.domain.event.PieceMoved;
 import dev.ecattez.shahmat.domain.event.PiecePositioned;
-import dev.ecattez.shahmat.domain.event.PromotionProposed;
 import dev.ecattez.shahmat.domain.event.TurnChanged;
 import dev.ecattez.shahmat.domain.game.BoardDecision;
 import dev.ecattez.shahmat.domain.game.ChessGame;
@@ -55,7 +54,7 @@ public class CheckStage extends Stage<CheckStage> {
     private Piece movingPiece;
     private Square movingPieceLocation;
 
-    private PieceType promotionType;
+    private Piece promotion;
 
     private PieceFactory pieceFactory;
     private List<ChessEvent> returnedEvents;
@@ -149,7 +148,7 @@ public class CheckStage extends Stage<CheckStage> {
             Assertions
                 .assertThat(move)
                 .isEqualTo(
-                    new MoveOnVacant(
+                    new StandardMove(
                         pieceFactory.createPiece(
                             PieceType.PAWN,
                             opponent.color()
@@ -180,23 +179,19 @@ public class CheckStage extends Stage<CheckStage> {
         return self();
     }
 
-    public CheckStage an_opposing_pawn_in_the_other_side_of_the_board(@Hidden String promotionLocation) {
+    public CheckStage an_opposing_pawn_in_$(@Hidden String opponentLocation) {
         this.opponent = pieceFactory.createPiece(
             PieceType.PAWN,
             opponentColor
         );
 
-        this.opponentLocation = new Square(promotionLocation);
-        this.to = new Square(promotionLocation);
+        this.opponentLocation = new Square(opponentLocation);
 
         history.addAll(
             List.of(
                 new PiecePositioned(
                     opponent,
-                    opponentLocation
-                ),
-                new PromotionProposed(
-                    opponentLocation
+                    this.opponentLocation
                 )
             )
         );
@@ -282,20 +277,40 @@ public class CheckStage extends Stage<CheckStage> {
         return self();
     }
 
-    public CheckStage the_opposing_pawn_is_promoted_to_$(String promotionType) {
-        this.promotionType = PieceType.valueOf(promotionType);
+    public CheckStage the_opposing_pawn_reaches_the_other_side_of_the_chess_board() {
+        this.to = opponentLocation.getNeighbour(Direction.FORWARD, opponent.orientation());
+
+        return self();
+    }
+
+    public CheckStage it_is_promoted_to_$(String promotionType) {
+        this.promotion = pieceFactory.createPiece(
+            PieceType.valueOf(promotionType),
+            opponentColor
+        );
+
+        history.addAll(
+            List.of(
+                new TurnChanged(
+                    opponentColor
+                )
+            )
+        );
 
         try {
-            returnedEvents = ChessGame.promote(
+            returnedEvents = ChessGame.move(
                 Collections.unmodifiableList(history),
-                new Promote(
+                new Move(
+                    PieceType.PAWN,
                     opponentLocation,
-                    this.promotionType
+                    to,
+                    promotion.type()
                 )
             );
         } catch (RulesViolation e) {
             violation = e;
         }
+
         return self();
     }
 
@@ -313,8 +328,12 @@ public class CheckStage extends Stage<CheckStage> {
                 ),
                 new KingChecked(
                     new PawnPromoted(
-                        opponentLocation,
-                        promotionType
+                        new PieceMoved(
+                            opponent,
+                            opponentLocation,
+                            to
+                        ),
+                        promotion
                     ),
                     kingLocation
                 )

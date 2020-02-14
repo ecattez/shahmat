@@ -8,10 +8,10 @@ import dev.ecattez.shahmat.domain.board.piece.PieceType;
 import dev.ecattez.shahmat.domain.board.square.Square;
 import dev.ecattez.shahmat.domain.command.InitBoard;
 import dev.ecattez.shahmat.domain.command.Move;
-import dev.ecattez.shahmat.domain.command.Promote;
 import dev.ecattez.shahmat.domain.event.BoardInitialized;
 import dev.ecattez.shahmat.domain.event.ChessEvent;
 import dev.ecattez.shahmat.domain.event.PawnPromoted;
+import dev.ecattez.shahmat.domain.event.PieceCaptured;
 import dev.ecattez.shahmat.domain.event.PieceMoved;
 import dev.ecattez.shahmat.domain.game.ChessGame;
 import dev.ecattez.shahmat.domain.game.GameType;
@@ -25,6 +25,7 @@ import dev.ecattez.shahmat.infra.store.SequenceAlreadyExists;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class ChessGameInfraTest {
@@ -120,17 +121,22 @@ public class ChessGameInfraTest {
             move(pubSub, eventStore, chessGameId, PieceType.PAWN, new Square(before.blackMove), blackMove);
         }
 
-        move(pubSub, eventStore, chessGameId, PieceType.PAWN, new Square("b7"), new Square("a8"));
-
-        promote(pubSub, eventStore, chessGameId, new Square("a8"), PieceType.QUEEN);
-
+        move(pubSub, eventStore, chessGameId, PieceType.PAWN, new Square("b7"), new Square("a8"), PieceType.QUEEN);
 
         Assertions
             .assertThat(eventStore.history(chessGameId))
             .containsOnlyOnce(
                 new PawnPromoted(
-                    new Square("a8"),
-                    PieceType.QUEEN
+                    new PieceCaptured(
+                        PieceBox.getInstance()
+                            .createPiece(PieceType.ROOK, PieceColor.BLACK),
+                        new Square("a8"),
+                        PieceBox.getInstance()
+                            .createPiece(PieceType.PAWN, PieceColor.WHITE),
+                        new Square("b7")
+                    ),
+                    PieceBox.getInstance()
+                        .createPiece(PieceType.QUEEN, PieceColor.WHITE)
                 )
             )
         ;
@@ -189,7 +195,26 @@ public class ChessGameInfraTest {
         );
     }
 
-    private void move(PubSub pubSub, EventStore eventStore, ChessGameId chessGameId, PieceType pieceType, Square from, Square to) {
+    private void move(
+        PubSub pubSub,
+        EventStore eventStore,
+        ChessGameId chessGameId,
+        PieceType pieceType,
+        Square from,
+        Square to
+    ) {
+        move(pubSub, eventStore, chessGameId, pieceType, from, to, null);
+    }
+
+    private void move(
+        PubSub pubSub,
+        EventStore eventStore,
+        ChessGameId chessGameId,
+        PieceType pieceType,
+        Square from,
+        Square to,
+        @Nullable PieceType promotedTo
+    ) {
         List<ChessEvent> history = eventStore.history(chessGameId);
 
         pubSub.dispatch(
@@ -200,22 +225,7 @@ public class ChessGameInfraTest {
                 new Move(
                     pieceType,
                     from,
-                    to
-                )
-            )
-        );
-    }
-
-    private void promote(PubSub pubSub, EventStore eventStore, ChessGameId chessGameId, Square location, PieceType promotedTo) {
-        List<ChessEvent> history = eventStore.history(chessGameId);
-
-        pubSub.dispatch(
-            chessGameId,
-            (long) history.size(),
-            ChessGame.promote(
-                history,
-                new Promote(
-                    location,
+                    to,
                     promotedTo
                 )
             )

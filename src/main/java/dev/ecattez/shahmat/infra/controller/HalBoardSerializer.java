@@ -57,7 +57,10 @@ public class HalBoardSerializer extends JsonSerializer<HalBoard> {
 
             HalPiece piece = square.getPiece();
             generatePiece(generator, piece);
-            generatePieceTemplates(generator, piece);
+
+            if (piece.canMove()) {
+                generatePieceTemplates(generator, piece);
+            }
         } else {
             generator.writeBooleanField("vacant", true);
         }
@@ -83,12 +86,30 @@ public class HalBoardSerializer extends JsonSerializer<HalBoard> {
 
         if (piece.isPromoting()) {
             generator.writeObjectFieldStart("promote");
-            generator.writeStringField("method", "PUT");
+            generator.writeStringField("method", "POST");
+
             generator.writeArrayFieldStart("properties");
+
+            generator.writeStartObject();
+            generator.writeStringField("name", "type");
+            generator.writeStringField("value", piece.getType());
+            generator.writeEndObject();
+
+            generator.writeStartObject();
+            generator.writeStringField("name", "to");
+            generator.writeStringField("regex", Square.SQUARE_PATTERN);
+            generator.writeArrayFieldStart("suggest");
+            for (String move: piece.getAvailableMoves()) {
+                generator.writeStartObject();
+                generator.writeStringField("value", move);
+                generator.writeEndObject();
+            }
+            generator.writeEndArray();
+            generator.writeEndObject();
+
             generator.writeStartObject();
             generator.writeStringField("name", "promotedTo");
             generator.writeArrayFieldStart("suggest");
-
             for (PieceType type: PieceType.values()) {
                 if (type.accept(PawnPromotionAllowedPieces.getInstance())) {
                     generator.writeStartObject();
@@ -96,9 +117,9 @@ public class HalBoardSerializer extends JsonSerializer<HalBoard> {
                     generator.writeEndObject();
                 }
             }
-
             generator.writeEndArray();
             generator.writeEndObject();
+
             generator.writeEndArray();
             generator.writeEndObject();
         } else if (piece.canMove()) {

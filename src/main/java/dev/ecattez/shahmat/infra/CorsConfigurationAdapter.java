@@ -15,7 +15,7 @@ public class CorsConfigurationAdapter extends WebSecurityConfigurerAdapter {
 
     private List<String> allowedOrigins;
 
-    public CorsConfigurationAdapter(@Value("${cors.global.allowed-origins}") List<String> allowedOrigins) {
+    public CorsConfigurationAdapter(@Value("${cors.global.allowed-origins:}") List<String> allowedOrigins) {
         this.allowedOrigins = allowedOrigins;
     }
 
@@ -29,7 +29,7 @@ public class CorsConfigurationAdapter extends WebSecurityConfigurerAdapter {
     private CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(allowedOrigins);
-        configuration.setAllowedMethods(List.of("GET","POST", "PUT"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
