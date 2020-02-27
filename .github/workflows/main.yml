@@ -28,8 +28,8 @@ jobs:
         name: report
     - name: Update github pages
       uses: crazy-max/ghaction-github-pages@v1
-        with:
-          target_branch: gh-pages
-          build_dir: report/jgiven-reports
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        target_branch: gh-pages
+        build_dir: report/jgiven-reports
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
