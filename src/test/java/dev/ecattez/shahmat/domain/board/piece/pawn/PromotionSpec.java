@@ -6,7 +6,7 @@ import com.tngtech.junit.dataprovider.DataProvider;
 import com.tngtech.junit.dataprovider.DataProviderExtension;
 import com.tngtech.junit.dataprovider.UseDataProviderExtension;
 import dev.ecattez.shahmat.domain.board.Rules;
-import org.junit.jupiter.api.Test;
+import dev.ecattez.shahmat.domain.board.move.MoveTag;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -17,6 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 })
 @Rules
 @PawnTag
+@MoveTag
 @PromotionTag
 public class PromotionSpec {
 
@@ -25,79 +26,101 @@ public class PromotionSpec {
 
     @TestTemplate
     @DataProvider(value = {
-        "WHITE, A7, A8",
-        "WHITE, B7, B8",
-        "WHITE, C7, C8",
-        "WHITE, D7, D8",
-        "WHITE, E7, E8",
-        "WHITE, F7, F8",
-        "WHITE, G7, G8",
-        "WHITE, H7, H8",
-        "BLACK, A2, A1",
-        "BLACK, B2, B1",
-        "BLACK, C2, C1",
-        "BLACK, D2, D1",
-        "BLACK, E2, E1",
-        "BLACK, F2, F1",
-        "BLACK, G2, G1",
-        "BLACK, H2, H1",
+        "WHITE, 7, 8",
+        "BLACK, 2, 1",
     })
-    public void promotion_is_proposed_when_a_pawn_reaches_the_other_side_of_the_chess_board(
+    public void a_pawn_must_be_promoted_when_it_reaches_the_other_side_of_the_chess_board(
         String color,
+        Integer penultimateRank,
+        Integer lastRank
+    ) {
+        stage
+            .given().a_$_pawn_in_the_penultimate_rank(color, penultimateRank)
+            .when().the_pawn_reaches_the_other_side_of_the_chess_board(lastRank)
+            .and().the_pawn_s_owner_does_not_promote_the_pawn()
+            .then().the_move_is_refused_because_promotion_must_be_done();
+    }
+
+    @TestTemplate
+    @DataProvider(value = {
+        "WHITE, 7, 8, KING",
+        "WHITE, 7, 8, PAWN",
+        "BLACK, 2, 1, KING",
+        "BLACK, 2, 1, PAWN",
+    })
+    public void a_pawn_can_not_be_promoted_for_a_non_king(
+        String color,
+        Integer penultimateRank,
+        Integer lastRank,
+        String promotionType
+    ) {
+        stage
+            .given().a_$_pawn_in_the_penultimate_rank(color, penultimateRank)
+            .when().the_pawn_reaches_the_other_side_of_the_chess_board(lastRank)
+            .and().the_pawn_s_owner_has_chosen_to_promote_it_with_a_$(promotionType)
+            .then().the_promotion_is_refused()
+            .with().$_as_reason("Piece can not promote");
+    }
+
+    @TestTemplate
+    @DataProvider(value = {
+        "WHITE, 7, 8, QUEEN",
+        "WHITE, 7, 8, ROOK",
+        "WHITE, 7, 8, BISHOP",
+        "WHITE, 7, 8, KNIGHT",
+        "BLACK, 2, 1, QUEEN",
+        "BLACK, 2, 1, ROOK",
+        "BLACK, 2, 1, BISHOP",
+        "BLACK, 2, 1, KNIGHT",
+    })
+    public void a_pawn_may_be_promote_for_a_queen_a_rook_a_bishop_or_a_knight(
+        String color,
+        Integer penultimateRank,
+        Integer lastRank,
+        String promotionType
+    ) {
+        stage
+            .given().a_$_pawn_in_the_penultimate_rank(color, penultimateRank)
+            .when().the_pawn_reaches_the_other_side_of_the_chess_board(lastRank)
+            .and().the_pawn_s_owner_has_chosen_to_promote_it_with_a_$(promotionType)
+            .then().a_$_of_the_same_color_replaces_the_pawn(promotionType);
+    }
+
+    @TestTemplate
+    @DataProvider(value = {
+        "WHITE, B7, A8",
+        "BLACK, E2, F1",
+    })
+    public void a_pawn_is_promoted_when_capturing_an_opposing_piece(
+        String color,
+        String from,
+        String opponentLocation
+    ) {
+        stage
+            .given().a_$_pawn_in_$(color, from)
+            .and().an_opposing_piece_in_$(opponentLocation)
+            .when().the_pawn_moves_to_$(opponentLocation)
+            .and().the_pawn_s_owner_has_chosen_a_valid_promotion_type()
+            .then().the_pawn_captures_the_opposing_piece()
+            .and().the_promotion_piece_replaces_the_pawn();
+    }
+
+    @TestTemplate
+    @DataProvider(value = {
+        "KING, B2, A1",
+        "QUEEN, A3, A1",
+        "ROOK, A3, A1",
+        "BISHOP, A3, C1",
+        "KNIGHT, D2, F1",
+    })
+    public void only_a_pawn_can_be_promoted(
+        String pieceType,
         String from,
         String to
     ) {
         stage
-            .given().a_$_pawn_in_$(color, from)
-            .when().the_pawn_is_moved_forward()
-            .then().a_promotion_is_proposed_in_$(to);
-    }
-
-    @Test
-    public void a_pawn_can_not_be_promoted_if_it_has_not_been_proposed_to_it() {
-        stage
-            .given().a_pawn_not_in_the_other_side_of_the_chess_board()
-            .when().the_pawn_is_promoted_to_a_valid_piece()
+            .when().a_$_is_promoted(pieceType, from, to)
             .then().the_promotion_is_refused()
-            .with().$_as_reason("Piece can not be promoted");;
+            .with().$_as_reason("Piece can not be promoted");
     }
-
-    @TestTemplate
-    @DataProvider(value = {
-        "PAWN",
-        "KING",
-    })
-    public void a_pawn_can_not_be_promoted_for_a_pawn_nor_a_king(String pieceType) {
-        stage
-            .given().a_pawn_in_the_other_side_of_the_chess_board()
-            .when().the_pawn_is_promoted_to_a_$(pieceType)
-            .then().the_promotion_is_refused()
-            .with().$_as_reason("Piece can not promote");;
-    }
-
-    @TestTemplate
-    @DataProvider(value = {
-        "QUEEN",
-        "KNIGHT",
-        "ROOK",
-        "BISHOP"
-    })
-    public void a_pawn_can_be_promoted(
-        String promotionType
-    ) {
-        stage
-            .given().a_pawn_in_the_other_side_of_the_chess_board()
-            .when().the_pawn_is_promoted_to_a_$(promotionType)
-            .then().a_$_replaces_the_pawn(promotionType);
-    }
-
-    @Test
-    public void no_piece_can_be_moved_while_a_pawn_is_promoted() {
-        stage
-            .given().a_pawn_in_the_other_side_of_the_chess_board()
-            .and().the_promotion_is_proposed()
-            .when().an_other_piece_is_moved()
-            .then().the_move_is_refused();
-    }
-
 }

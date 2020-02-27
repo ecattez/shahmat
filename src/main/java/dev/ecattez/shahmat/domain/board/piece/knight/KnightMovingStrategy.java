@@ -6,7 +6,7 @@ import dev.ecattez.shahmat.domain.board.Orientation;
 import dev.ecattez.shahmat.domain.board.piece.Piece;
 import dev.ecattez.shahmat.domain.board.piece.move.AbstractMovingStrategy;
 import dev.ecattez.shahmat.domain.board.piece.move.Capture;
-import dev.ecattez.shahmat.domain.board.piece.move.MoveOnVacant;
+import dev.ecattez.shahmat.domain.board.piece.move.StandardMove;
 import dev.ecattez.shahmat.domain.board.piece.move.Movement;
 import dev.ecattez.shahmat.domain.board.square.Square;
 
@@ -59,7 +59,7 @@ public class KnightMovingStrategy extends AbstractMovingStrategy {
         if (board.hasOpponent(perpendicular, piece)) {
             return new Capture(piece, from, perpendicular, board.getPiece(perpendicular));
         }
-        return new MoveOnVacant(piece, from, perpendicular);
+        return new StandardMove(piece, from, perpendicular);
     }
 
 }

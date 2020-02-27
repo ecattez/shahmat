@@ -6,7 +6,7 @@ import dev.ecattez.shahmat.domain.board.Orientation;
 import dev.ecattez.shahmat.domain.board.piece.Piece;
 import dev.ecattez.shahmat.domain.board.piece.move.AbstractMovingStrategy;
 import dev.ecattez.shahmat.domain.board.piece.move.Capture;
-import dev.ecattez.shahmat.domain.board.piece.move.MoveOnVacant;
+import dev.ecattez.shahmat.domain.board.piece.move.StandardMove;
 import dev.ecattez.shahmat.domain.board.piece.move.Movement;
 import dev.ecattez.shahmat.domain.board.square.Square;
 
@@ -33,7 +33,7 @@ public class KingMovingStrategy extends AbstractMovingStrategy {
 
     private Optional<Movement> toMovement(Board board, Piece piece, Square from, Square location) {
         if (board.isVacant(location)) {
-            return Optional.of(new MoveOnVacant(piece, from, location));
+            return Optional.of(new StandardMove(piece, from, location));
         }
         if (board.hasOpponent(location, piece)) {
             return Optional.of(new Capture(piece, from, location, board.getPiece(location)));

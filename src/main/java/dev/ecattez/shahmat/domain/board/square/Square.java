@@ -41,9 +41,9 @@ public class Square {
     }
 
     public Optional<Square> findNeighbour(Direction direction, Orientation orientation) {
-        return orientation.accept(
-            new SquareNeighborhoodVisitor(direction, this)
-        );
+        return orientation.accept(SquareNeighborhoodVisitor.getInstance())
+            .apply(direction)
+            .apply(this);
     }
 
     public Square getNeighbour(Direction direction, Orientation orientation) throws SquareOutsideOfBoard {
@@ -59,7 +59,9 @@ public class Square {
         if (times <= 0) {
             return Optional.of(current);
         }
-        return orientation.accept(new SquareNeighborhoodVisitor(direction, current))
+        return orientation.accept(SquareNeighborhoodVisitor.getInstance())
+            .apply(direction)
+            .apply(current)
             .flatMap(found -> findNeighbour(direction, orientation, found, times - 1));
     }
 

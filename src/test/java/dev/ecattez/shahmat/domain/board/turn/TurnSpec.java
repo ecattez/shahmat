@@ -61,35 +61,4 @@ public class TurnSpec {
             .then().the_move_is_refused();
     }
 
-    @TestTemplate
-    @DataProvider(value = {
-        "WHITE",
-        "BLACK"
-    })
-    public void turn_does_not_change_when_a_promotion_is_proposed(
-        String color
-    ) {
-        stage
-            .given().a_$_pawn_in_other_side_of_the_chess_board(color)
-            .and().$_is_playing(color)
-            .when().a_promotion_is_proposed_for_the_pawn()
-            .then().turn_stays_for_$(color);
-    }
-
-    @TestTemplate
-    @DataProvider(value = {
-        "WHITE, BLACK",
-        "BLACK, WHITE"
-    })
-    public void turn_changes_when_a_promotion_is_proposed(
-        String color,
-        String opponentColor
-    ) {
-        stage
-            .given().a_$_pawn_in_other_side_of_the_chess_board(color)
-            .and().$_is_playing(color)
-            .when().the_pawn_is_promoted()
-            .then().it_is_the_turn_of_$(opponentColor);
-    }
-
 }

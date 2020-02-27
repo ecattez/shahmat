@@ -4,22 +4,24 @@ import dev.ecattez.shahmat.domain.board.Board;
 import dev.ecattez.shahmat.domain.board.piece.Piece;
 import dev.ecattez.shahmat.domain.board.piece.PieceType;
 import dev.ecattez.shahmat.domain.board.piece.move.Movement;
+import dev.ecattez.shahmat.domain.board.piece.pawn.PawnPromotionRankVisitor;
 import dev.ecattez.shahmat.domain.board.square.Square;
 import dev.ecattez.shahmat.domain.board.violation.RulesViolation;
 import dev.ecattez.shahmat.domain.command.InitBoard;
 import dev.ecattez.shahmat.domain.command.Move;
-import dev.ecattez.shahmat.domain.command.Promote;
 import dev.ecattez.shahmat.domain.event.ChessEvent;
 import dev.ecattez.shahmat.domain.game.BoardDecision;
 import dev.ecattez.shahmat.domain.game.ChessGame;
 import dev.ecattez.shahmat.domain.game.GameType;
 import dev.ecattez.shahmat.infra.aggregate.ChessGameId;
+import dev.ecattez.shahmat.infra.projection.BoardInfo;
 import dev.ecattez.shahmat.infra.projection.HalBoard;
 import dev.ecattez.shahmat.infra.projection.HalPiece;
 import dev.ecattez.shahmat.infra.projection.HalSquare;
 import dev.ecattez.shahmat.infra.publisher.ChessGamePubSub;
 import dev.ecattez.shahmat.infra.store.EventStore;
 import dev.ecattez.shahmat.infra.store.SequenceAlreadyExists;
+import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.LinkRelation;
@@ -27,7 +29,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -69,6 +70,34 @@ public class HalBoardResource {
         } catch (SequenceAlreadyExists e) {
             throw new BoardStateConflict();
         }
+    }
+
+    private BoardInfo toBoardInfo(ChessGameId id) {
+        List<ChessEvent> history = eventStore.history(id);
+        Board board = BoardDecision.replay(history);
+
+        return new BoardInfo(
+            id.value,
+            "<not_implemented>",
+            "<not_implemented>",
+            board.turnOf().toString(),
+            board.isOver()
+        );
+    }
+
+    @GetMapping(produces = "application/prs.hal-forms+json")
+    public CollectionModel<BoardInfo> listBoards() {
+        List<BoardInfo> boardsInfo = eventStore.aggregateIds()
+            .stream()
+            .map(this::toBoardInfo)
+            .collect(Collectors.toList());
+
+        return new CollectionModel<>(
+            boardsInfo,
+            linkTo(
+                methodOn(HalBoardResource.class).listBoards()
+            ).withSelfRel()
+        );
     }
 
     @PostMapping
@@ -136,36 +165,6 @@ public class HalBoardResource {
         return halSquare;
     }
 
-    @PutMapping(path = "{boardId}/squares/{where}", produces = "application/prs.hal-forms+json")
-    public HalBoard promote(@PathVariable String boardId, @PathVariable String where, @Valid  @RequestBody PromotionPayload payload) {
-        ChessGameId chessGameId = ChessGameId.fromString(boardId);
-        List<ChessEvent> history = eventStore.history(chessGameId);
-
-        if (history.isEmpty()) {
-            throw new BoardNotFound(chessGameId);
-        }
-
-        PieceType promotedTo = PieceType.valueOf(payload.getPromotedTo());
-        Square location = new Square(where);
-
-        dispatch(
-            chessGameId,
-            (long) history.size(),
-            () -> ChessGame.promote(
-                history,
-                new Promote(
-                    location,
-                    promotedTo
-                )
-            )
-        );
-
-        return toHalBoard(
-            chessGameId,
-            BoardDecision.replay(eventStore.history(chessGameId))
-        );
-    }
-
     @PostMapping(path = "{boardId}/squares/{where}", produces = "application/prs.hal-forms+json")
     public HalBoard move(@PathVariable String boardId, @PathVariable String where, @Valid @RequestBody MovePayload payload) {
         ChessGameId chessGameId = ChessGameId.fromString(boardId);
@@ -178,6 +177,9 @@ public class HalBoardResource {
         PieceType pieceType = PieceType.valueOf(payload.getType());
         Square fromSquare = new Square(where);
         Square toSquare = new Square(payload.getTo());
+        PieceType promotedTo = payload.getPromotedTo() == null
+            ? null
+            : PieceType.valueOf(payload.getPromotedTo());
 
         dispatch(
             chessGameId,
@@ -187,7 +189,8 @@ public class HalBoardResource {
                 new Move(
                     pieceType,
                     fromSquare,
-                    toSquare
+                    toSquare,
+                    promotedTo
                 )
             )
         );
@@ -250,29 +253,37 @@ public class HalBoardResource {
     }
 
     private HalSquare toHalSquare(Board board, Square occupied, Piece piece) {
+        List<Square> destinations = getAvailableDestination(board, occupied, piece);
+
         return new HalSquare(
             occupied.toString(),
             new HalPiece(
                 piece.type().toString(),
                 piece.color().toString(),
                 piece.toString(),
-                toAvailableMoves(board, occupied, piece),
-                board.isPromotingIn(occupied)
+                destinations
+                    .stream()
+                    .map(Square::toString)
+                    .collect(Collectors.toList()),
+                destinations
+                    .stream()
+                    .anyMatch(to -> piece
+                        .accept(PawnPromotionRankVisitor.getInstance())
+                        .equals(to.rank)
+                    )
             )
         );
     }
 
-    private List<String> toAvailableMoves(Board board, Square occupied, Piece piece) {
+    private List<Square> getAvailableDestination(Board board, Square occupied, Piece piece) {
         // fixme: double logic between business and infra for move propositions ??
-        if (!BoardDecision.isOwnedByCurrentPlayer(board, piece) ||
-            (board.isPromoting() && !board.isPromotingIn(occupied))) {
+        if (!BoardDecision.isOwnedByCurrentPlayer(board, piece)) {
             return Collections.emptyList();
         }
 
         return BoardDecision.getMovementsAwareOfCheck(board, occupied, piece)
             .stream()
             .map(Movement::to)
-            .map(Square::toString)
             .collect(Collectors.toList());
 
     }

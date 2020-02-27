@@ -2,6 +2,7 @@ package dev.ecattez.shahmat.domain.game;
 
 import dev.ecattez.shahmat.domain.board.Board;
 import dev.ecattez.shahmat.domain.board.piece.Piece;
+import dev.ecattez.shahmat.domain.board.piece.PieceBox;
 import dev.ecattez.shahmat.domain.board.piece.PieceColor;
 import dev.ecattez.shahmat.domain.board.piece.PieceType;
 import dev.ecattez.shahmat.domain.board.piece.move.AwareOfCheckMovingStrategy;
@@ -12,6 +13,8 @@ import dev.ecattez.shahmat.domain.board.piece.pawn.PawnPromotionAllowedPieces;
 import dev.ecattez.shahmat.domain.board.piece.pawn.PawnPromotionRankVisitor;
 import dev.ecattez.shahmat.domain.board.square.Square;
 import dev.ecattez.shahmat.domain.board.violation.PieceCanNotBeMoved;
+import dev.ecattez.shahmat.domain.board.violation.PromotionMustBeDone;
+import dev.ecattez.shahmat.domain.board.violation.PromotionRefused;
 import dev.ecattez.shahmat.domain.board.violation.RulesViolation;
 import dev.ecattez.shahmat.domain.event.ChessEvent;
 import dev.ecattez.shahmat.domain.event.ChessMoveEvent;
@@ -20,6 +23,7 @@ import dev.ecattez.shahmat.domain.event.KingCheckmated;
 import dev.ecattez.shahmat.domain.event.MovementToEventVisitor;
 import dev.ecattez.shahmat.domain.event.PawnPromoted;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -124,13 +128,6 @@ public class BoardDecision {
             .filter(kingIsCheckmated(board, event, kingColor));
     }
 
-    public static Optional<Square> evaluateCheckmate(Board board, PawnPromoted event) {
-        PieceColor kingColor = board.getPiece(event.location).color().opposite();
-
-        return evaluateCheck(board, event)
-            .filter(kingIsCheckmated(board, event, kingColor));
-    }
-
     private static Predicate<Square> kingIsCheckmated(Board board, ChessEvent event, PieceColor kingColor) {
         return kingLocation -> {
             Board futureBoard = new Board(board);
@@ -146,25 +143,6 @@ public class BoardDecision {
 
             return !canBeProtected;
         };
-    }
-
-    public static Optional<Square> evaluateCheck(Board board, PawnPromoted event) {
-        Board futureBoard = new Board(board);
-        futureBoard.apply(event);
-
-        Piece promotedTo = futureBoard.getPiece(event.location);
-        PieceColor kingColor = promotedTo.color().opposite();
-
-        return futureBoard
-            .findLocationOfKing(kingColor)
-            .filter(kingLocation ->
-                findMovementAwareOfCheck(
-                    futureBoard,
-                    event.location,
-                    kingLocation,
-                    promotedTo
-                ).isPresent()
-            );
     }
 
     public static boolean willBeChecked(Board board, ChessMoveEvent event) {
@@ -196,28 +174,45 @@ public class BoardDecision {
         return !willBeChecked(board, event);
     }
 
-    public static ChessEvent move(Board board, Square from, Square to, Piece pieceToMove) throws RulesViolation {
+    public static ChessMoveEvent evaluatePromotion(
+        ChessMoveEvent event,
+        @Nullable PieceType promotedTo
+    ) {
+        if (promotedTo == null) {
+            if (canBePromoted(event.to, event.piece)) {
+                throw new PromotionMustBeDone(event.to);
+            }
+        } else {
+            if (!canBePromoted(event.to, event.piece)) {
+                throw new PromotionRefused(PromotionRefused.Reason.PIECE_CAN_NOT_BE_PROMOTED);
+            }
+            if (!canPromote(promotedTo)) {
+                throw new PromotionRefused(PromotionRefused.Reason.PIECE_CAN_NOT_PROMOTE);
+            }
+            return new PawnPromoted(
+                event,
+                PieceBox.getInstance().createPiece(promotedTo, event.piece.color())
+            );
+        }
+        return event;
+    }
+
+    public static ChessEvent move(
+        Board board,
+        Square from,
+        Square to,
+        Piece pieceToMove,
+        @Nullable PieceType promotedTo
+    ) throws RulesViolation {
         return BoardDecision.findMovementAwareOfCheck(board, from, to, pieceToMove)
             .map(move -> move.accept(EVENTS_FROM_MOVEMENT))
+            .map(event -> evaluatePromotion(event, promotedTo))
             .map(event -> evaluateCheckmate(board, event)
                 .<ChessEvent>map(kingLocation -> new KingCheckmated(event, kingLocation))
                 .orElseGet(() -> evaluateCheck(board, event)
                     .<ChessEvent>map(kingLocation -> new KingChecked(event, kingLocation))
                     .orElse(event)))
             .orElseThrow(() -> new PieceCanNotBeMoved(pieceToMove, from, to));
-    }
-
-    public static ChessEvent promote(Board board, Square location, PieceType typeOfPromotion) throws RulesViolation {
-        PawnPromoted promoted = new PawnPromoted(
-            location,
-            typeOfPromotion
-        );
-
-        return BoardDecision.evaluateCheckmate(board, promoted)
-            .<ChessEvent>map(kingLocation -> new KingCheckmated(promoted, kingLocation))
-            .orElseGet(() -> evaluateCheck(board, promoted)
-                .<ChessEvent>map(kingLocation -> new KingChecked(promoted, kingLocation))
-                .orElse(promoted));
     }
 
     private static MovingStrategy getMovingStrategy(Piece piece) {

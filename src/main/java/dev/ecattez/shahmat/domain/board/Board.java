@@ -1,9 +1,7 @@
 package dev.ecattez.shahmat.domain.board;
 
 import dev.ecattez.shahmat.domain.board.piece.Piece;
-import dev.ecattez.shahmat.domain.board.piece.PieceBox;
 import dev.ecattez.shahmat.domain.board.piece.PieceColor;
-import dev.ecattez.shahmat.domain.board.piece.PieceType;
 import dev.ecattez.shahmat.domain.board.piece.king.King;
 import dev.ecattez.shahmat.domain.board.piece.pawn.EnPassantRules;
 import dev.ecattez.shahmat.domain.board.square.Square;
@@ -18,7 +16,6 @@ import dev.ecattez.shahmat.domain.event.PieceCaptured;
 import dev.ecattez.shahmat.domain.event.PieceCapturedEnPassant;
 import dev.ecattez.shahmat.domain.event.PieceMoved;
 import dev.ecattez.shahmat.domain.event.PiecePositioned;
-import dev.ecattez.shahmat.domain.event.PromotionProposed;
 import dev.ecattez.shahmat.domain.event.TurnChanged;
 
 import java.util.HashMap;
@@ -31,7 +28,6 @@ public class Board extends EventListener {
     private final Map<Square, Piece> piecePerSquare;
     private boolean playing;
     private Square enPassantPieceLocation;
-    private Square promotionLocation;
     private Square checkedLocation;
     private PieceColor turnOf;
     private boolean over;
@@ -47,7 +43,6 @@ public class Board extends EventListener {
         this.piecePerSquare = new HashMap<>(board.piecePerSquare);
         this.playing = board.playing;
         this.enPassantPieceLocation = board.enPassantPieceLocation;
-        this.promotionLocation = board.promotionLocation;
         this.turnOf = board.turnOf;
         this.startListening();
     }
@@ -60,7 +55,6 @@ public class Board extends EventListener {
         onEvent(PieceMoved.class, this::apply);
         onEvent(KingChecked.class, this::apply);
         onEvent(KingCheckmated.class, this::apply);
-        onEvent(PromotionProposed.class, this::apply);
         onEvent(PawnPromoted.class, this::apply);
         onEvent(TurnChanged.class, this::apply);
     }
@@ -111,14 +105,6 @@ public class Board extends EventListener {
                 Map.Entry::getKey,
                 Map.Entry::getValue
             ));
-    }
-
-    public boolean isPromoting() {
-        return promotionLocation != null;
-    }
-
-    public boolean isPromotingIn(Square location) {
-        return location.equals(promotionLocation);
     }
 
     public boolean isVacant(Square location) {
@@ -227,24 +213,16 @@ public class Board extends EventListener {
         winner = getPiece(event.kingLocation).color().opposite();
     }
 
-    public void apply(PromotionProposed event) {
-        this.promotionLocation = event.location;
-    }
-
     public void apply(PawnPromoted event) {
-        Square location = event.location;
-        PieceType promotedTo = event.promotedTo;
-        Piece pawn = getPiece(location);
-        Piece promotion = PieceBox
-            .getInstance()
-            .createPiece(promotedTo, pawn.color());
+        Piece promotedTo = event.piece;
+        Square from = event.from;
+        Square to = event.to;
 
-        piecePerSquare.put(
-            location,
-            promotion
-        );
+        piecePerSquare.remove(from);
+        piecePerSquare.put(to, promotedTo);
 
-        promotionLocation = null;
+        checkedLocation = null;
+        enPassantPieceLocation = null;
     }
 
     public void apply(TurnChanged event) {

@@ -7,8 +7,8 @@ import dev.ecattez.shahmat.domain.board.piece.Piece;
 import dev.ecattez.shahmat.domain.board.piece.move.AbstractMovingStrategy;
 import dev.ecattez.shahmat.domain.board.piece.move.Capture;
 import dev.ecattez.shahmat.domain.board.piece.move.EnPassant;
-import dev.ecattez.shahmat.domain.board.piece.move.MoveOnVacant;
 import dev.ecattez.shahmat.domain.board.piece.move.Movement;
+import dev.ecattez.shahmat.domain.board.piece.move.StandardMove;
 import dev.ecattez.shahmat.domain.board.square.Square;
 
 import java.util.Arrays;
@@ -55,7 +55,7 @@ public class PawnMovingStrategy extends AbstractMovingStrategy {
                 new LinkedList<>()
             )
                 .stream()
-                .map(to -> new MoveOnVacant(piece, from, to))
+                .map(to -> new StandardMove(piece, from, to))
                 .collect(Collectors.toList());
         }
 

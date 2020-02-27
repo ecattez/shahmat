@@ -69,7 +69,7 @@ public abstract class StopOnObstructionMovingStrategy extends AbstractMovingStra
 
     private void addMoveOnVacant(Piece piece, Square from, List<Movement> neighbourKept, Square next) {
         neighbourKept.add(
-            new MoveOnVacant(
+            new StandardMove(
                 piece,
                 from,
                 next
